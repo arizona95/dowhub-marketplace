@@ -34,6 +34,13 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install --quiet ruff detect-secrets pip-audit
+      # 저장소 불변식: 자산 폴더가 안 바뀌어도 항상 돈다. 카탈로그만 손대면 자산 검사는
+      # 건너뛰므로, 이게 없으면 카드 값이 실제와 어긋나도 CI 가 그냥 통과한다
+      # (AARplugin 이 1.0.15 인데 카드는 1.0.14 였던 게 그렇게 살아남았다).
+      - name: 카탈로그 일관성
+        run: |
+          python .github/scripts/sync_catalog.py --check
+          python .github/scripts/validate_catalog.py
       - run: python .github/scripts/run_validators.py --tier basic --changed-since "$BASE"
 
   deep:
