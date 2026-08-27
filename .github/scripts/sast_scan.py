@@ -119,7 +119,13 @@ def main() -> int:
     ap.add_argument("--update-baseline", action="store_true",
                     help="현재 결과를 baseline 으로 기록한다(사람이 검토한 뒤에만 쓸 것)")
     ap.add_argument("--json-out", default="")
+    ap.add_argument("--print-version", action="store_true",
+                    help="패턴 개수를 버전으로 출력한다 — 규칙이 늘면 판정도 달라지므로 태그에 박는다")
     args = ap.parse_args()
+
+    if args.print_version:
+        print(f"skillspector {len(SKILLSPECTOR_PATTERNS)}+clawvet {len(CLAWVET_PATTERNS)}")
+        return 0
 
     repo = Path.cwd()
     targets = [Path(t) for t in args.targets] or \
@@ -166,10 +172,18 @@ def main() -> int:
         Path(args.json_out).write_text(json.dumps(report, ensure_ascii=False, indent=2),
                                        encoding="utf-8")
     if args.update_baseline:
+        # 🚨 스캔한 대상만 갱신하고 나머지는 **보존**한다. 전에는 new_baseline 으로 파일을
+        #    통째로 덮어써서, 한 자산만 지정해 돌리면 다른 자산의 승인 한도가 조용히 사라졌다
+        #    (그 자산들이 그 뒤 무한 허용이 아니라 '한도 0' 이 돼 다음 PR 에서 엉뚱하게 실패한다).
+        merged = dict(baseline)
+        merged.update(new_baseline)
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
-        baseline_path.write_text(json.dumps(new_baseline, ensure_ascii=False, indent=2) + "\n",
+        baseline_path.write_text(json.dumps(dict(sorted(merged.items())),
+                                            ensure_ascii=False, indent=2) + "\n",
                                  encoding="utf-8")
-        print(f"\nbaseline 갱신: {baseline_path}")
+        changed = [k for k in new_baseline if baseline.get(k) != new_baseline[k]]
+        print(f"\nbaseline 갱신: {baseline_path}"
+              f" (바뀐 자산 {len(changed)}개: {', '.join(changed) or '없음'}, 나머지 {len(merged)-len(new_baseline)}개 보존)")
         return 0
 
     if failed:

@@ -1,51 +1,191 @@
 {
   "skills/gmail_peek": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": false,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "plugins/AARplugin": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": false,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "plugins/mcp-test-dowoo": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "plugins/remote-plugin-dowoo": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "mcp/AARmcp": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "mcp/gmail_dowoo": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   },
   "mcp/test_dowoo": {
-    "syntax": true,
-    "shape": true,
-    "no-secrets": true,
-    "skillspector": true,
-    "supply-chain": true
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    },
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    }
   }
 }

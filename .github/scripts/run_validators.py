@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -31,6 +32,27 @@ def assets() -> list[str]:
     for base in ("skills", "plugins", "mcp"):
         out += [p.as_posix() for p in sorted(Path(base).glob("*")) if p.is_dir()]
     return out
+
+
+VERSION_RE = re.compile(r"\d+\.\d+(?:\.\d+)?(?:[a-z0-9.\-+]*)?")
+
+
+def tool_version(cmd: list[str] | None) -> str:
+    """도구 버전. '무엇이 검사했나' 만큼 '어느 버전이' 도 태그에 남아야 한다 —
+    도구가 올라가면 같은 코드에 대한 판정이 달라질 수 있기 때문이다."""
+    if not cmd:
+        return ""
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except Exception:                                   # noqa: BLE001
+        return ""
+    out = (r.stdout + r.stderr).strip().splitlines()
+    if not out:
+        return ""
+    line = out[0]
+    m = VERSION_RE.search(line)
+    # 버전 숫자가 없으면(패턴 개수처럼 자체 표기) 첫 줄을 그대로 쓴다.
+    return m.group(0) if m else line[:40]
 
 
 def run(cmd: list[str], target: str) -> tuple[bool, str]:
@@ -60,26 +82,41 @@ def main() -> int:
     marks = json.loads(MARKS.read_text(encoding="utf-8")) if MARKS.exists() else {}
     failed_basic = []
 
+    versions = {v["name"]: tool_version(v.get("version_cmd")) for v in chosen}
+
+    known = {v["name"] for v in reg}
     for t in targets:
         entry = marks.setdefault(t, {})
+        # 등록표에서 빠진 검증자의 옛 결과를 남겨두면, 지운 검사가 계속 '미통과'로 보인다.
+        for stale in [k for k in entry if k not in known]:
+            entry.pop(stale)
         print(f"\n{t}")
         for v in chosen:
             ok, msg = run(v["cmd"], t if v["scope"] == "target" else ".")
-            entry[v["name"]] = ok
+            # 통과 여부와 '어느 버전이 판정했는지'를 함께 남긴다.
+            entry[v["name"]] = {"ok": ok, "version": versions.get(v["name"], ""),
+                                "tier": v["tier"]}
             icon = "O" if ok else "X"
-            print(f"  [{icon}] {v['name']:14} ({v['tier']:5}) {msg[:88]}")
+            ver = versions.get(v["name"], "")
+            print(f"  [{icon}] {v['name']:14} {ver:22} ({v['tier']:5}) {msg[:60]}")
             if not ok and v["tier"] == "basic":
                 failed_basic.append(f"{t}/{v['name']}")
 
     # 요약: 5개 다 붙은 자산이 '완전 검증'이다.
     total = len(reg)
     print("\n" + "=" * 60)
+    def passed(t, name):
+        m = (marks.get(t) or {}).get(name)
+        return bool(m.get("ok")) if isinstance(m, dict) else bool(m)
+
     for t in targets:
-        got = sum(1 for v in reg if marks.get(t, {}).get(v["name"]))
-        tags = " ".join(v["label"] for v in reg if marks.get(t, {}).get(v["name"]))
-        print(f"  {t:34} {got}/{total}  {tags}")
+        got = sum(1 for v in reg if passed(t, v["name"]))
+        tags = " ".join(v["name"] for v in reg if passed(t, v["name"]))
+        print(f"  {t:30} {got}/{total}  {tags}")
 
     if args.write:
+        for gone in [k for k in marks if k not in targets]:
+            marks.pop(gone)
         MARKS.write_text(json.dumps(marks, ensure_ascii=False, indent=2) + "\n",
                          encoding="utf-8")
         print(f"\nmarks 기록: {MARKS}")
