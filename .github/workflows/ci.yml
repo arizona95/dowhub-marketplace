@@ -1,0 +1,49 @@
+# 검증자는 .github/validators.json 에 등록한다 — 새 검사를 붙일 때 이 파일은 안 고친다.
+#
+# 잡을 둘로 나눈 건 실패의 뜻이 다르기 때문이다.
+#   basic : 깨진 배포물. 내보내면 사용자 쪽에서 안 돌아간다 → 병합을 막는다.
+#   deep  : 판단이 섞이는 영역 → 막지 않고, 태그가 안 붙는 것으로 드러낸다.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  basic:
+    name: 기본검증
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python .github/scripts/run_validators.py --tier basic
+
+  deep:
+    name: 심화검증
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install --quiet pip-audit
+      # 심화는 떨어져도 CI 를 세우지 않는다. 결과는 태그와 요약으로만 남는다.
+      - name: 심화검증 실행
+        continue-on-error: true
+        run: |
+          python .github/scripts/run_validators.py --tier deep --write | tee deep.log
+          {
+            echo '### 심화검증 결과'
+            echo '```'
+            tail -n 12 deep.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marks
+          path: .github/marks.json

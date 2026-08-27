@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.sca-requirements.txt
+sast-report.json

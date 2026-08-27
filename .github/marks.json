@@ -1,0 +1,51 @@
+{
+  "skills/gmail_peek": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "plugins/AARplugin": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "plugins/mcp-test-dowoo": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "plugins/remote-plugin-dowoo": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "mcp/AARmcp": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "mcp/gmail_dowoo": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  },
+  "mcp/test_dowoo": {
+    "syntax": true,
+    "shape": true,
+    "no-secrets": true,
+    "skillspector": true,
+    "supply-chain": true
+  }
+}

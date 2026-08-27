@@ -1,0 +1,53 @@
+{
+  "_comment": [
+    "검증자 등록표. 새 검사를 붙이려면 여기에 항목만 추가한다 — 워크플로는 안 건드린다.",
+    "",
+    "tier=basic : 통과해야 병합된다. 실패 = CI 빨간불.",
+    "tier=deep  : 실패해도 CI 는 초록불. 대신 그 태그가 안 붙는다.",
+    "",
+    "cmd 의 {target} 은 검사 대상 폴더로 치환된다. scope=repo 면 저장소 전체에 한 번만 돈다.",
+    "5개가 다 붙은 자산이 '완전 검증' 상태다."
+  ],
+  "validators": [
+    {
+      "name": "syntax",
+      "label": "문법",
+      "tier": "basic",
+      "scope": "target",
+      "description": "JSON 이 파싱되고 파이썬이 컴파일되는지 — 깨진 매니페스트는 설치를 막고, 문법 오류는 실행 시점에야 터진다",
+      "cmd": ["python", ".github/scripts/check_syntax.py", "{target}"]
+    },
+    {
+      "name": "shape",
+      "label": "구조",
+      "tier": "basic",
+      "scope": "target",
+      "description": "스킬은 SKILL.md, 플러그인은 plugin.json 을 갖췄는지 — 없으면 클라이언트가 못 읽는다",
+      "cmd": ["python", ".github/scripts/check_shape.py", "{target}"]
+    },
+    {
+      "name": "no-secrets",
+      "label": "무유출",
+      "tier": "basic",
+      "scope": "target",
+      "description": "자격증명 형태가 들어있지 않은지 — public 저장소라 한 번 새면 폐기 말고 방법이 없다",
+      "cmd": ["python", ".github/scripts/secret_scan.py", "{target}"]
+    },
+    {
+      "name": "skillspector",
+      "label": "위협패턴",
+      "tier": "deep",
+      "scope": "target",
+      "description": "위협 패턴 561개(skillspector 504 + clawvet 57) 대비 baseline 초과분이 없는지",
+      "cmd": ["python", ".github/scripts/sast_scan.py", "{target}"]
+    },
+    {
+      "name": "supply-chain",
+      "label": "공급망",
+      "tier": "deep",
+      "scope": "target",
+      "description": "버전이 고정되지 않은 자동실행 런처가 없고, 끌어오는 패키지에 알려진 취약점이 없는지",
+      "cmd": ["python", ".github/scripts/sca_scan.py", "{target}"]
+    }
+  ]
+}

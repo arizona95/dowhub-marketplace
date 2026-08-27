@@ -1,0 +1,17 @@
+{
+  "skills/gmail_peek": {
+    "credential_theft": 2,
+    "data_exfiltration": 1,
+    "tool_misuse": 4
+  },
+  "plugins/AARplugin": {
+    "credential_theft": 2,
+    "data_exfiltration": 2,
+    "tool_misuse": 177,
+    "tool_poisoning": 125
+  },
+  "plugins/mcp-test-dowoo": {
+    "tool_poisoning": 2
+  },
+  "plugins/remote-plugin-dowoo": {}
+}

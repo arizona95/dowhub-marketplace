@@ -1,0 +1,191 @@
+{
+  "name": "dowhub-marketplace",
+  "owner": {
+    "name": "dowoo",
+    "email": "arizona9506@gmail.com"
+  },
+  "metadata": {
+    "description": "dowhub 마켓플레이스 — 스킬·플러그인·MCP 정본. 모든 변경은 PR + CI(SCA/SAST/시크릿) + 승인을 거친다."
+  },
+  "plugins": [
+    {
+      "name": "AARplugin",
+      "description": "AgentAutoReview — AI 앱 보안 리뷰 워크플로 스킬 3종 + 리모트 MCP(AARmcp). /aar_review(적용 시나리오 전수 실증) · /aar_update(주간 SaaS 추적, 트리·보고서 델타 갱신) · /aar_fix(자기 스킬·가이드 점검→개편, edit_guidance 호출) · /aar_explain(리뷰 결과를 큰그림·적은글씨 HTML 아티팩트로 쉽게 설명). 리뷰 발행 직전 독립 검증 서브에이전트 aar-reviewer(배정 대상 드리프트·tier 귀속 정직성·커버리지·증거 게이트). 설치하면 스킬·에이전트와 AARmcp 도구가 함께, 도구는 서버측 자동 업데이트.",
+      "version": "1.0.14",
+      "source": "./plugins/AARplugin",
+      "hub": {
+        "title": "AAR Plugin",
+        "icon": "🧰",
+        "type": "plugin",
+        "status": "published",
+        "version": "1.0.14",
+        "url": "https://github.com/arizona95/AARplugin.git",
+        "install": "/plugin marketplace add https://github.com/arizona95/AARplugin.git",
+        "skills": [
+          "aar_review",
+          "aar_update",
+          "aar_fix"
+        ],
+        "modes": [
+          "claude_code_plugin"
+        ]
+      }
+    },
+    {
+      "name": "mcp-test-dowoo",
+      "description": "Test MCP (dowoo) - minimal read/write note server at dowhub.org. OAuth 2.0, no credential stored. [v1.0.1 - auto-update probe]",
+      "version": "1.0.1",
+      "source": "./plugins/mcp-test-dowoo",
+      "hub": {
+        "type": "plugin",
+        "status": "published",
+        "version": "1.0.1"
+      }
+    },
+    {
+      "name": "remote-plugin-dowoo",
+      "description": "무해한 원격 플러그인 (모니터링 가시성 실험). 마커 스킬 + /remote-plugin-dowoo 명령을 제공. 원격 git 마켓플레이스에서 설치되어 local plugin과 대조된다.",
+      "version": "1.0.0",
+      "source": "./plugins/remote-plugin-dowoo",
+      "hub": {
+        "type": "plugin",
+        "status": "published",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "gmail_peek",
+      "description": "받은편지함을 IMAP 으로 직접 조회하는 스킬 — MCP 를 거치지 않는다.",
+      "version": "1.0.0",
+      "source": "./skills/gmail_peek",
+      "hub": {
+        "type": "skill",
+        "status": "published",
+        "title": "Gmail Peek",
+        "summary": "MCP 없이 직접 붙는다 — 라이브러리를 그 자리에서 내려받아 imap.gmail.com 에 TLS 로 접속해 받은편지함을 읽는다.",
+        "icon": "📬",
+        "version": "1.0.0",
+        "modes": [
+          "skill"
+        ],
+        "source_dir": "skills/gmail_peek",
+        "tools": [
+          "peek_mail.py"
+        ],
+        "auth": "none"
+      }
+    },
+    {
+      "name": "gmail_dowoo",
+      "description": "Personal Gmail for one account - reads and writes only the owner's own inbox (fixed recipient, fixed app password).",
+      "version": "",
+      "hub": {
+        "title": "Gmail (dowoo)",
+        "icon": "📧",
+        "type": "mcp",
+        "status": "published",
+        "version": "1.0.0",
+        "url": "https://dowhub.org/gmail_dowoo/",
+        "auth": "oauth",
+        "tools": [
+          "send_mail",
+          "list_mail",
+          "search_mail",
+          "read_mail"
+        ],
+        "modes": [
+          "remote_mcp",
+          "local_mcp"
+        ]
+      },
+      "source": "./mcp/gmail_dowoo"
+    },
+    {
+      "name": "test_dowoo",
+      "description": "Minimal read/write MCP - a connection monitor, and the guinea pig for plugin-marketplace experiments.",
+      "version": "",
+      "hub": {
+        "title": "Test MCP",
+        "icon": "🧪",
+        "type": "mcp",
+        "status": "published",
+        "version": "1.0.1",
+        "url": "https://dowhub.org/test_dowoo/",
+        "auth": "oauth",
+        "tools": [
+          "read_note",
+          "write_note"
+        ],
+        "modes": [
+          "remote_mcp",
+          "local_mcp"
+        ]
+      },
+      "source": "./mcp/test_dowoo"
+    },
+    {
+      "name": "AARmcp",
+      "description": "AI-app security review: routes app traffic through an inspecting proxy to prove, live, what an app sends and where. Drives a local backend (operator/api) that provisions Azure review environments, controls the browser, captures proxy flows, and builds reports — an in-place remote MCP (the machine that hosts it does the real work) [v1.0.3: 브라우저 primitive 를 claude 함수로 통일(navigate/computer/browser_batch) + 3-손 라우팅(operator/인앱/chrome)].",
+      "version": "",
+      "hub": {
+        "title": "AAR MCP",
+        "icon": "🔍",
+        "type": "mcp",
+        "status": "published",
+        "version": "1.0.3",
+        "url": "https://dowhub.org/AARmcp/",
+        "auth": "oauth",
+        "tools": [
+          "archive_capture",
+          "browser_batch",
+          "browser_mode",
+          "build_report",
+          "clear_caption",
+          "clear_capture",
+          "computer",
+          "coverage_ledger",
+          "create_environment",
+          "create_policy_rule",
+          "create_scenario",
+          "delete_policy_rule",
+          "delete_report",
+          "delete_scenario",
+          "delete_tree_snapshot",
+          "edit_guidance",
+          "edit_scenario",
+          "get_environment",
+          "get_scenario_instruction",
+          "get_tree",
+          "list_environments",
+          "list_guidance",
+          "list_policy_rules",
+          "list_reports",
+          "list_scenarios",
+          "list_trees",
+          "memory_note",
+          "memory_recall",
+          "navigate",
+          "prepare_saas_target",
+          "reset_environment",
+          "review_playbook",
+          "run_bg",
+          "save_evidence",
+          "scenario_start",
+          "set_caption",
+          "start_environment",
+          "start_recording",
+          "stop_environment",
+          "stop_recording",
+          "tree_changelog",
+          "tree_snapshots",
+          "update_tree"
+        ],
+        "modes": [
+          "remote_mcp",
+          "local_mcp"
+        ]
+      },
+      "source": "./mcp/AARmcp"
+    }
+  ]
+}
