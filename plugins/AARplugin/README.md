@@ -16,11 +16,16 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
   **도구·로직은 서버측 자동 업데이트**.
 
 ## 설치
+개별 저장소는 폐지됐다(2026-08-27). 스킬·플러그인·MCP 는 **마켓플레이스 하나**에서 나간다.
 ```
-/plugin marketplace add https://github.com/arizona95/AARplugin.git
+/plugin marketplace add https://github.com/arizona95/dowhub-marketplace.git
 /plugin install AARplugin
 ```
+> 예전 `arizona95/AARplugin.git` 으로 등록해 뒀다면 그 마켓플레이스는 더 이상 없다 —
+> `/plugin marketplace remove aar-marketplace` 후 위 URL 로 다시 추가한다.
 
 ## 업데이트
 - **AARmcp 도구/로직** → dowhub.org 서버만 갱신 = 전 사용자 자동 반영.
-- **스킬 내용** → 이 repo push 후 `/plugin update`.
+- **스킬 내용** → 마켓플레이스에 **브랜치로 올려 PR** → CI(기본검증 통과) + 소유자 승인 → main 병합.
+  버전을 안 올리면 클라이언트가 "최신"으로 보고 안 당겨온다 — `plugin.json` 과 카탈로그의
+  `version` 을 **같이** 올린다.
