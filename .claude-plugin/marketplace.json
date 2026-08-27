@@ -90,10 +90,10 @@
         "url": "https://dowhub.org/gmail_dowoo/",
         "auth": "oauth",
         "tools": [
-          "send_mail",
           "list_mail",
+          "read_mail",
           "search_mail",
-          "read_mail"
+          "send_mail"
         ],
         "modes": [
           "remote_mcp",

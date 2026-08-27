@@ -14,6 +14,8 @@ import json
 import sys
 from pathlib import Path
 
+import catalog_lib as lib
+
 CATALOG = Path(".claude-plugin/marketplace.json")
 
 
@@ -56,7 +58,7 @@ def main() -> int:
             if not src:
                 errors.append(f"{where} {etype} 인데 source 가 없습니다 — 설치할 게 없습니다.")
             else:
-                p = Path(str(src).lstrip("./"))
+                p = lib.asset_dir(src)
                 if not p.is_dir():
                     errors.append(f"{where} source 폴더가 없습니다: {src}")
                 elif etype == "plugin":
@@ -69,13 +71,9 @@ def main() -> int:
                         except json.JSONDecodeError:
                             errors.append(f"{where} plugin.json 파싱 실패")
                             mv = None
-                        # 버전이 어긋나면 업데이트 판정이 틀어진다 — 배포 사고의 단골 원인.
-                        if mv and e.get("version") and mv != e["version"]:
-                            errors.append(f"{where} 버전 불일치: 카탈로그 {e['version']} "
-                                          f"!= plugin.json {mv}")
-                        if mv and hub.get("version") and mv != hub["version"]:
-                            errors.append(f"{where} hub.version({hub['version']}) 이 "
-                                          f"plugin.json({mv}) 과 다릅니다.")
+                        # 값이 맞는지는 sync_catalog.py 가 진실원 기준으로 본다. 여기서 또
+                        # 보면 규칙이 두 곳에 생겨, 한쪽만 고쳤을 때 조용히 갈라진다.
+                        del mv
                 elif etype == "skill":
                     # 스킬은 SKILL.md 의 frontmatter 로 언제 쓸지가 정해진다.
                     if not (p / "SKILL.md").is_file():
@@ -87,6 +85,11 @@ def main() -> int:
                         errors.append(f"{where} .mcp.json 이 없습니다: {p}")
         if etype == "mcp" and not hub.get("url"):
             errors.append(f"{where} mcp 인데 hub.url 이 없습니다.")
+        # 저장소가 확인해 줄 수 없는 값을 카드가 주장하지 않게 한다 — 없어진 도구 43개가
+        # 아무 근거 없이 카드에 남아 있던 게 이 자리였다.
+        if etype == "mcp" and hub.get("tools") and lib.truth_tools(e) is None:
+            errors.append(f"{where} 도구를 광고하는데 근거 스냅샷이 없습니다: "
+                          f"{lib.tools_snapshot_path(e)}")
 
         # 외부 소스는 반드시 커밋으로 핀돼 있어야 한다. 핀이 없으면 upstream 이 언제든
         # 내용을 바꿀 수 있고, 그러면 이 저장소의 리뷰·CI 가 무의미해진다.
