@@ -1,17 +1,28 @@
 # 검증자는 .github/validators.json 에 등록한다 — 새 검사를 붙일 때 이 파일은 안 고친다.
 #
 # 잡을 둘로 나눈 건 실패의 뜻이 다르기 때문이다.
-#   basic : 깨진 배포물. 내보내면 사용자 쪽에서 안 돌아간다 → 병합을 막는다.
-#   deep  : 판단이 섞이는 영역 → 막지 않고, 태그가 안 붙는 것으로 드러낸다.
+#   기본 : 깨진 배포물. 내보내면 사용자 쪽에서 안 돌아간다 → 병합을 막는다.
+#   심화 : 판단이 섞이는 영역 → 막지 않고, 태그가 안 붙는 것으로 드러낸다.
+#
+# 매번 전 자산을 돌리지 않는다. 손대지 않은 자산까지 다시 도는 건 낭비이기도 하지만,
+# 무관한 자산 때문에 내 PR 이 빨개지는 게 더 나쁘다. 단 .github/ 가 바뀌면 판정 기준이
+# 바뀐 것이라 러너가 알아서 전수로 올린다(옛 기준으로 받은 태그가 남으면 안 되므로).
 name: ci
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 4 * * 1'        # 주 1회 전수 — 도구·취약점DB 가 올라가면 판정이 바뀐다
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  # PR 은 base 와 비교, push 는 직전 커밋과 비교. 그 외(스케줄·수동)는 빈 값 = 전수.
+  BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha
+         || (github.event_name == 'push' && github.event.before || '') }}
 
 jobs:
   basic:
@@ -19,16 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }      # 변경 비교에 이력이 필요하다
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install --quiet ruff detect-secrets pip-audit
-      - run: python .github/scripts/run_validators.py --tier basic
+      - run: python .github/scripts/run_validators.py --tier basic --changed-since "$BASE"
 
   deep:
     name: 심화검증
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install --quiet black
@@ -36,11 +49,12 @@ jobs:
       - name: 심화검증 실행
         continue-on-error: true
         run: |
-          python .github/scripts/run_validators.py --tier deep --write | tee deep.log
+          python .github/scripts/run_validators.py --tier deep --write \
+            --changed-since "$BASE" | tee deep.log
           {
             echo '### 심화검증 결과'
             echo '```'
-            tail -n 12 deep.log
+            tail -n 14 deep.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4

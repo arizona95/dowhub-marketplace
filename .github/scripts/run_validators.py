@@ -26,12 +26,49 @@ REGISTRY = Path(".github/validators.json")
 MARKS = Path(".github/marks.json")
 
 
+BASES = ("skills", "plugins", "mcp")
+
+
 def assets() -> list[str]:
     """검증 대상 = 이 저장소가 실제로 배포하는 것들."""
     out = []
-    for base in ("skills", "plugins", "mcp"):
+    for base in BASES:
         out += [p.as_posix() for p in sorted(Path(base).glob("*")) if p.is_dir()]
     return out
+
+
+def changed_assets(base_ref: str) -> list[str] | None:
+    """base_ref 이후 손댄 자산만. 판정 불가면 None(=전수로 돌린다).
+
+    안 건드린 자산까지 매번 다시 도는 건 낭비이기도 하지만, 무관한 자산 때문에 내 PR 이
+    빨개지는 게 더 나쁘다. 다만 검증자 자체(.github/)가 바뀌면 판정 기준이 바뀐 것이므로
+    그때는 전수로 돌려야 한다 — 안 그러면 옛 기준으로 받은 태그가 그대로 남는다.
+    """
+    try:
+        r = subprocess.run(["git", "diff", "--name-only", f"{base_ref}...HEAD"],
+                           capture_output=True, text=True, timeout=120)
+        if r.returncode != 0:
+            r = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"],
+                               capture_output=True, text=True, timeout=120)
+        if r.returncode != 0:
+            return None
+    except Exception:                                   # noqa: BLE001
+        return None
+
+    files = [f for f in r.stdout.splitlines() if f.strip()]
+    if any(f.startswith(".github/") for f in files):
+        print("검증 기준(.github/)이 바뀌었습니다 — 전수로 돌립니다.")
+        return None
+
+    known = set(assets())
+    hit = set()
+    for f in files:
+        parts = f.split("/")
+        if len(parts) >= 2 and parts[0] in BASES:
+            a = f"{parts[0]}/{parts[1]}"
+            if a in known:
+                hit.add(a)
+    return sorted(hit)
 
 
 VERSION_RE = re.compile(r"\d+\.\d+(?:\.\d+)?(?:[a-z0-9.\-+]*)?")
@@ -73,11 +110,25 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--tier", choices=["basic", "deep", "all"], default="all")
     ap.add_argument("--write", action="store_true", help="marks.json 갱신")
+    ap.add_argument("--changed-since", default="",
+                    help="이 ref 이후 바뀐 자산만 검사한다 (비우면 전수)")
     args = ap.parse_args()
 
     reg = json.loads(REGISTRY.read_text(encoding="utf-8"))["validators"]
     chosen = [v for v in reg if args.tier in ("all", v["tier"])]
-    targets = assets()
+
+    all_targets = assets()
+    full_sweep = True
+    targets = all_targets
+    if args.changed_since:
+        ch = changed_assets(args.changed_since)
+        if ch is not None:
+            targets, full_sweep = ch, False
+            if not targets:
+                print(f"{args.changed_since} 이후 바뀐 자산이 없습니다 — 검사할 것 없음.")
+                return 0
+            print(f"변경된 자산 {len(targets)}/{len(all_targets)}개만 검사합니다: "
+                  f"{', '.join(targets)}")
 
     marks = json.loads(MARKS.read_text(encoding="utf-8")) if MARKS.exists() else {}
     failed_basic = []
@@ -109,14 +160,19 @@ def main() -> int:
         m = (marks.get(t) or {}).get(name)
         return bool(m.get("ok")) if isinstance(m, dict) else bool(m)
 
-    for t in targets:
+    for t in all_targets:
+        if t not in marks:
+            continue
         got = sum(1 for v in reg if passed(t, v["name"]))
         tags = " ".join(v["name"] for v in reg if passed(t, v["name"]))
-        print(f"  {t:30} {got}/{total}  {tags}")
+        mark = " " if t in targets else "·"          # · = 이번에 안 돌린 것(직전 결과)
+        print(f" {mark}{t:30} {got}/{total}  {tags}")
 
     if args.write:
-        for gone in [k for k in marks if k not in targets]:
-            marks.pop(gone)
+        if full_sweep:
+            # 부분 실행에서 지우면 안 건드린 자산의 태그가 통째로 날아간다.
+            for gone in [k for k in marks if k not in all_targets]:
+                marks.pop(gone)
         MARKS.write_text(json.dumps(marks, ensure_ascii=False, indent=2) + "\n",
                          encoding="utf-8")
         print(f"\nmarks 기록: {MARKS}")
