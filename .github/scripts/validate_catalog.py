@@ -76,9 +76,15 @@ def main() -> int:
                         if mv and hub.get("version") and mv != hub["version"]:
                             errors.append(f"{where} hub.version({hub['version']}) 이 "
                                           f"plugin.json({mv}) 과 다릅니다.")
-                elif etype in ("skill", "mcp"):
+                elif etype == "skill":
+                    # 스킬은 SKILL.md 의 frontmatter 로 언제 쓸지가 정해진다.
                     if not (p / "SKILL.md").is_file():
                         errors.append(f"{where} SKILL.md 가 없습니다: {p}")
+                elif etype == "mcp":
+                    # MCP 는 원격 엔드포인트라 스킬 파일이 없다. 배포물은 클라이언트가
+                    # 실제로 쓰는 연결 매니페스트다.
+                    if not (p / ".mcp.json").is_file():
+                        errors.append(f"{where} .mcp.json 이 없습니다: {p}")
         if etype == "mcp" and not hub.get("url"):
             errors.append(f"{where} mcp 인데 hub.url 이 없습니다.")
 
