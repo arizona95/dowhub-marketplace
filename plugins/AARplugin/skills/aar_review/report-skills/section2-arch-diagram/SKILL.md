@@ -35,7 +35,7 @@
 5. `tabs_create_mcp(url: "file:///.../diagrams/<saas>_arch.html")` 또는 임시 서버 URL
 6. `resize_window(1200, 700, tabId)` (구성도 가로폭 일정하게)
 7. `computer(action: "screenshot", tabId, save_to_disk: true)` → PNG 저장
-8. (필요 시) `zoom(region: [x0,y0,x1,y1])` 으로 부분 확대 캡처
+8. (필요 시) 확대가 필요하면 **HTML 쪽 크기를 키워** 다시 찍는다 — 캡처 후 잘라 키우면 흐려진다.
 
 ### Phase C — docx 삽입
 9. 캡처 PNG 를 본 보고서 / 별첨7 의 이미지 자리표시자 위치에 삽입
