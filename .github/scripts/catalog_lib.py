@@ -105,3 +105,34 @@ def truth_tools(entry: dict) -> list[str] | None:
         return None
     tools = data.get("tools")
     return tools if isinstance(tools, list) else None
+
+
+def truth_description(entry: dict) -> str | None:
+    """카드 설명의 진실원. plugin 은 plugin.json 의 description 이 그것이다."""
+    hub = entry.get("hub") or {}
+    d = asset_dir(entry.get("source"))
+    if hub.get("type") != "plugin" or d is None:
+        return None
+    man = d / ".claude-plugin" / "plugin.json"
+    if not man.is_file():
+        return None
+    try:
+        return json.loads(man.read_text(encoding="utf-8")).get("description")
+    except json.JSONDecodeError:
+        return None
+
+
+def truth_skills(entry: dict) -> list[str] | None:
+    """플러그인이 실제로 들고 있는 스킬 = `<source>/skills/*/SKILL.md`.
+
+    손으로 적으면 반드시 어긋난다 — 실제로 카드는 3종, README 는 3종, 플러그인 안 옛 카탈로그는
+    4종이라 적어두고 실물은 **5종**이었다. 폴더가 말하게 한다.
+    """
+    hub = entry.get("hub") or {}
+    d = asset_dir(entry.get("source"))
+    if hub.get("type") != "plugin" or d is None:
+        return None
+    sk = d / "skills"
+    if not sk.is_dir():
+        return None
+    return sorted(x.name for x in sk.iterdir() if (x / "SKILL.md").is_file())

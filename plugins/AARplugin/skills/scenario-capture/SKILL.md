@@ -77,7 +77,7 @@ user PC 는 Guacamole RDP **이미지 스트림**(DOM 없음). 콘솔을 거쳐 
 >
 > 🚨 **터미널(PowerShell/cmd/bash) 명령 실행 — RDP 라 Enter 가 잘 안 먹는다(검증된 절차):**
 > ① 명령을 입력한 뒤, **터미널 화면 영역을 한 번 클릭해 포커스**를 확실히 잡는다(SendKeysBar 입력창이 아니라 **터미널 그 자체**를 클릭).
-> ② **Enter 를 2~3번** 친다 — RDP/Guacamole 는 키 전달이 불안정해 첫 Enter 가 씹히는 경우가 많다(`browser_key('Enter')` 반복, 또는 keys API `press_enter:true`).
+> ② **Enter 를 2~3번** 친다 — RDP/Guacamole 는 키 전달이 불안정해 첫 Enter 가 씹히는 경우가 많다(브라우저 키 입력을 반복하거나, keys API `press_enter:true`).
 > ③ **스크린샷으로 프롬프트가 다음 줄로 넘어갔는지(=실행됨)** 확인. 안 넘어갔으면 **다시 클릭+Enter**. (명령만 보내고 무한 대기 금지 — 워치독이 잡지만 너 스스로 확인해라.)
 > ④ 설치/다운로드처럼 오래 걸리면 주기적으로 스크린샷으로 진행을 보고, **완료 전 다음 명령 금지**.
 

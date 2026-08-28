@@ -49,6 +49,19 @@ def main() -> int:
             unverifiable.append(f"{name}: version 을 대조할 진실원이 없다"
                                 f"{' (mcp 는 서버가 진실원)' if hub.get('type') == 'mcp' else ''}")
 
+        # ── 설명·스킬 목록: plugin.json / skills 폴더가 진실원 ──────────────
+        desc = lib.truth_description(e)
+        if desc and e.get("description") != desc:
+            drift.append(f"{name}: description 이 plugin.json 과 다르다")
+            e["description"] = desc
+        sk = lib.truth_skills(e)
+        if sk is not None and list(hub.get("skills") or []) != sk:
+            have, want = set(hub.get("skills") or []), set(sk)
+            drift.append(f"{name}: hub.skills 가 실제 폴더와 다르다 — "
+                         f"카드에만 {sorted(have - want) or '없음'}, "
+                         f"폴더에만 {sorted(want - have) or '없음'}")
+            hub["skills"] = sk
+
         # ── 도구 목록: mcp/<name>/tools.json 스냅샷이 진실원 ────────────────
         if hub.get("type") == "mcp":
             snap = lib.truth_tools(e)
