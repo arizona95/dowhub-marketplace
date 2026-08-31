@@ -11,12 +11,28 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
 import catalog_lib as lib
 
 CATALOG = Path(".claude-plugin/marketplace.json")
+
+# 🚨 claude.ai 마켓플레이스 **동기화**는 kebab-case 이름만 받는다. Claude Code 자체는 대문자
+#    이름도 받아주기 때문에, 로컬에선 멀쩡히 붙는데 claude.ai 목록에서만 조용히 사라진다 —
+#    실측: 7개 항목 중 kebab 인 2개(mcp-test-dowoo·remote-plugin-dowoo)만 보였고 나머지
+#    5개(AARplugin·AARmcp·gmail_peek·gmail_dowoo·test_dowoo)는 안 보였다.
+#    `claude plugin validate` 는 plugin.json 이 있는 항목만 이름을 검사해서 AARplugin 하나만
+#    잡았다 — 그래서 카탈로그 **항목 이름 전부**를 여기서 본다.
+KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+
+def _kebab_hint(name: str) -> str:
+    """사람이 그대로 쓸 수 있는 후보를 만든다 — 규칙만 말하면 매번 다시 고민하게 된다."""
+    out = re.sub(r"[^a-z0-9]+", "-", re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "-", name).lower())
+    return out.strip("-") or "my-plugin"
 
 
 def main() -> int:
@@ -46,6 +62,12 @@ def main() -> int:
             errors.append(f"{where} name 이 비어 있습니다.")
         if name in seen:
             errors.append(f"{where} 이름이 중복됩니다.")
+        if name and not KEBAB.match(name):
+            errors.append(
+                f"{where} 이름이 kebab-case 가 아닙니다 — claude.ai 마켓플레이스 동기화가 "
+                f"거부해 이 항목만 목록에서 사라집니다(로컬 설치는 되므로 눈치채기 어렵다). "
+                f"소문자·숫자·하이픈만 쓰세요: 예) {_kebab_hint(name)}"
+            )
         seen.add(name)
 
         hub = e.get("hub") or {}

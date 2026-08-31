@@ -9,21 +9,22 @@
   },
   "plugins": [
     {
-      "name": "AARplugin",
-      "description": "AgentAutoReview — AI 앱 보안 리뷰 워크플로 스킬 5종 + 리모트 MCP(AARmcp). /aar_review(적용 시나리오 전수 실증) · /aar_update(주간 SaaS 추적, 트리·보고서 델타 갱신) · /aar_fix(대화에서 배운 걸 규범에 반영) · /aar_explain(리뷰 결과를 큰그림·적은글씨 HTML 아티팩트로). 리뷰 발행 직전 독립 검증 서브에이전트 aar-reviewer(대상 드리프트·tier 귀속 정직성·커버리지·증거 게이트)와 대전제 감사 aar-compounder. 스킬은 한 트리(skills/)에서만 관리하고 MCP `skill('get', …)` 로 원문을 받아 쓴다. 도구는 서버측 자동 업데이트.",
-      "version": "1.0.18",
-      "source": "./plugins/AARplugin",
+      "name": "aar-plugin",
+      "description": "AgentAutoReview — AI 앱 보안 리뷰 워크플로 스킬 6종 + 리모트 MCP(aar-mcp). /aar_review(적용 시나리오 전수 실증) · /aar_update(주간 SaaS 추적, 트리·보고서 델타 갱신) · /aar_fix(대화에서 배운 걸 규범에 반영) · /aar_explain(리뷰 결과를 큰그림·적은글씨 HTML 아티팩트로) · /aar_menu(원천 트리 항목 하나만 조사해 그 노드에 보고서를 붙임). 리뷰 발행 직전 독립 검증 서브에이전트 aar-reviewer(대상 드리프트·tier 귀속 정직성·커버리지·증거 게이트)와 대전제 감사 aar-compounder. 스킬은 한 트리(skills/)에서만 관리하고 MCP `skill('get', …)` 로 원문을 받아 쓴다. 도구는 서버측 자동 업데이트.",
+      "version": "1.0.19",
+      "source": "./plugins/aar-plugin",
       "hub": {
         "title": "AAR Plugin",
         "icon": "🧰",
         "type": "plugin",
         "status": "published",
-        "version": "1.0.18",
+        "version": "1.0.19",
         "url": "https://github.com/arizona95/dowhub-marketplace.git",
         "install": "/plugin marketplace add https://github.com/arizona95/dowhub-marketplace.git",
         "skills": [
           "aar_explain",
           "aar_fix",
+          "aar_menu",
           "aar_review",
           "aar_update",
           "scenario-capture"
@@ -59,10 +60,10 @@
       }
     },
     {
-      "name": "gmail_peek",
+      "name": "gmail-peek",
       "description": "받은편지함을 IMAP 으로 직접 조회하는 스킬 — MCP 를 거치지 않는다.",
       "version": "1.0.0",
-      "source": "./skills/gmail_peek",
+      "source": "./skills/gmail-peek",
       "hub": {
         "type": "skill",
         "status": "published",
@@ -73,7 +74,7 @@
         "modes": [
           "skill"
         ],
-        "source_dir": "skills/gmail_peek",
+        "source_dir": "skills/gmail-peek",
         "tools": [
           "peek_mail.py"
         ],
@@ -81,7 +82,7 @@
       }
     },
     {
-      "name": "gmail_dowoo",
+      "name": "gmail-dowoo",
       "description": "Personal Gmail for one account - reads and writes only the owner's own inbox (fixed recipient, fixed app password).",
       "version": "",
       "hub": {
@@ -103,10 +104,10 @@
           "local_mcp"
         ]
       },
-      "source": "./mcp/gmail_dowoo"
+      "source": "./mcp/gmail-dowoo"
     },
     {
-      "name": "test_dowoo",
+      "name": "test-dowoo",
       "description": "Minimal read/write MCP - a connection monitor, and the guinea pig for plugin-marketplace experiments.",
       "version": "",
       "hub": {
@@ -126,10 +127,10 @@
           "local_mcp"
         ]
       },
-      "source": "./mcp/test_dowoo"
+      "source": "./mcp/test-dowoo"
     },
     {
-      "name": "AARmcp",
+      "name": "aar-mcp",
       "description": "AI-app security review: routes app traffic through an inspecting proxy to prove, live, what an app sends and where. Drives a local backend that provisions Azure review environments, captures proxy flows, and builds reports — an in-place remote MCP (the machine that hosts it does the real work). [v1.0.4: 도구를 46→20 으로 정리 — 같은 자원은 action 하나로 통합(env·policy·tree·scenario·report), 절차·판단은 skill 트리로 이관, 서버측 브라우저 조작 도구 폐기]",
       "version": "",
       "hub": {
@@ -138,7 +139,7 @@
         "type": "mcp",
         "status": "published",
         "version": "1.0.4",
-        "url": "https://dowhub.org/AARmcp/",
+        "url": "https://dowhub.org/aar-mcp/",
         "auth": "oauth",
         "tools": [
           "archive_capture",
@@ -166,7 +167,7 @@
           "local_mcp"
         ]
       },
-      "source": "./mcp/AARmcp"
+      "source": "./mcp/aar-mcp"
     }
   ]
 }
