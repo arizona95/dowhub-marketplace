@@ -3,7 +3,7 @@
 
 MCP 의 진실원은 **살아있는 서버**다. 이 저장소는 그 서버가 아니라서 도구 목록을 직접
 확인할 수 없고, 그래서 카드에 손으로 적힌 목록이 아무 저항 없이 낡아갔다
-(AARmcp 카드가 **없어진 도구 43개**를 계속 광고한 게 그렇게 살아남았다).
+(aar-mcp 카드가 **없어진 도구 43개**를 계속 광고한 게 그렇게 살아남았다).
 
 그 구멍을 이렇게 막는다:
   ① 서버 소스에서 도구 이름을 뽑아 `mcp/<이름>/tools.json` 에 **출처와 함께** 박는다.
@@ -13,7 +13,7 @@ MCP 의 진실원은 **살아있는 서버**다. 이 저장소는 그 서버가 
 **저장소 안 아무 근거도 없이 도구를 광고하는 일**은 사라진다.
 
 쓰기:
-    python .github/scripts/sync_mcp_tools.py --mcp AARmcp \
+    python .github/scripts/sync_mcp_tools.py --mcp aar-mcp \
         --source ~/…/agentreview_mcp.py --write
 """
 

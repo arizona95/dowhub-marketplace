@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "AARmcp": {
-      "type": "http",
-      "url": "https://dowhub.org/AARmcp/"
-    }
-  }
-}

@@ -37,7 +37,7 @@ API = os.environ.get("AGENTREVIEW_API", "http://localhost:8080")
 
 
 def _repo_root():
-    # .../SDSreviewBLUE/AARplugin/skills/scenario-capture/scripts/archive.py
+    # .../SDSreviewBLUE/aar-plugin/skills/scenario-capture/scripts/archive.py
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 
 

@@ -15,7 +15,7 @@ UA_CLI = "claude-cli"
 
 
 def repo_root():
-    """SDSreviewBLUE 루트(이 스크립트는 AARplugin/skills/scenario-capture/scripts 아래)."""
+    """SDSreviewBLUE 루트(이 스크립트는 aar-plugin/skills/scenario-capture/scripts 아래)."""
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 
 

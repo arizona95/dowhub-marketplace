@@ -36,11 +36,27 @@ jobs:
       - run: pip install --quiet ruff detect-secrets pip-audit
       # 저장소 불변식: 자산 폴더가 안 바뀌어도 항상 돈다. 카탈로그만 손대면 자산 검사는
       # 건너뛰므로, 이게 없으면 카드 값이 실제와 어긋나도 CI 가 그냥 통과한다
-      # (AARplugin 이 1.0.15 인데 카드는 1.0.14 였던 게 그렇게 살아남았다).
+      # (aar-plugin 이 1.0.15 인데 카드는 1.0.14 였던 게 그렇게 살아남았다).
       - name: 카탈로그 일관성
         run: |
           python .github/scripts/sync_catalog.py --check
           python .github/scripts/validate_catalog.py
+      # 🚨 배포물이 클라이언트에 어떻게 보이는지는 **공식 도구**만 안다. 우리 검사(ruff·시크릿·
+      #    SAST)는 전부 통과하는데 claude.ai 목록에서만 항목이 사라지던 일이 있었다
+      #    (이름이 kebab-case 가 아니면 동기화가 조용히 거부한다). 공식 도구가 있으면 돌리고,
+      #    없으면 건너뛴다 — 우리 규칙은 validate_catalog.py 가 이미 독립으로 지킨다.
+      - name: 공식 플러그인 검증 (있으면)
+        run: |
+          if command -v claude >/dev/null 2>&1; then
+            claude plugin validate . 2>&1 | tee /tmp/pv.txt
+            # 'hub' 는 우리 확장 필드라 무시. 그 외 경고는 실패로 본다.
+            if grep -v "Unknown field 'hub'" /tmp/pv.txt | grep -q "❯"; then
+              echo "::error::claude plugin validate 가 'hub' 외의 경고를 냈다 — 위 목록을 고쳐라"
+              exit 1
+            fi
+          else
+            echo "claude CLI 없음 — 공식 검증 생략(validate_catalog.py 가 같은 규칙을 지킨다)"
+          fi
       - run: python .github/scripts/run_validators.py --tier basic --changed-since "$BASE"
 
   deep:

@@ -1,5 +1,5 @@
 {
-  "skills/gmail_peek": {
+  "skills/gmail-peek": {
     "skillspector": {
       "ok": true,
       "version": "skillspector 504+clawvet 57",
@@ -26,7 +26,7 @@
       "tier": "deep"
     }
   },
-  "plugins/AARplugin": {
+  "plugins/aar-plugin": {
     "skillspector": {
       "ok": true,
       "version": "skillspector 504+clawvet 57",
@@ -107,7 +107,7 @@
       "tier": "deep"
     }
   },
-  "mcp/AARmcp": {
+  "mcp/aar-mcp": {
     "skillspector": {
       "ok": true,
       "version": "skillspector 504+clawvet 57",
@@ -134,7 +134,7 @@
       "tier": "deep"
     }
   },
-  "mcp/gmail_dowoo": {
+  "mcp/gmail-dowoo": {
     "skillspector": {
       "ok": true,
       "version": "skillspector 504+clawvet 57",
@@ -161,7 +161,7 @@
       "tier": "deep"
     }
   },
-  "mcp/test_dowoo": {
+  "mcp/test-dowoo": {
     "skillspector": {
       "ok": true,
       "version": "skillspector 504+clawvet 57",
