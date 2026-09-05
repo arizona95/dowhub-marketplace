@@ -187,5 +187,32 @@
       "version": "26.5.1",
       "tier": "deep"
     }
+  },
+  "plugins/aas-plugin": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.4",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
   }
 }
