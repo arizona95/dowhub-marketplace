@@ -1,4 +1,4 @@
-# aas-plugin — AgentAutoScreening
+# aas-plugin — Agent Auto Sensing (AAS)
 
 **무엇** — 대상 SaaS/에이전트의 공개 업데이트 페이지를 **매일** 읽어, 점검기준 33개에 걸리거나
 보안상 중요한 변화를 잡아 **AAR 리뷰 요청서**를 만든다. 판정은 하지 않는다 — "이걸 다시 보라"까지.
