@@ -13,15 +13,20 @@ allowed-tools: [WebFetch, Read, Write, Bash]
 `aas_scope` 가 그린 지도를 순찰한다. **대부분의 날은 "변화 없음"으로 끝나야 정상**이다.
 
 ## 0) 준비
-- 상태: `~/.aas/targets.json` · `scope.json` · `seen/<slug>/<url-sha1>.json` · `requests/` · `log.jsonl`.
+- 상태: `~/.aas/targets.json` · `scope.json` · `seen/<slug>/<url-sha1>.json` · **`pending.jsonl`**(수집한 변화 전부) · `requests/` · `log.jsonl`.
+- 시작할 때 `pending.jsonl`·`targets.json` 이 깨져 있으면(JSON 오류) **멈추고 보고**한다 — 빈 파일로 덮어쓰지 마라.
 - 기준 정본: `list_guidance("점검기준")` 을 읽고 **§회사 체크리스트 코드 ↔ 점검영역** 표를 든다. 여기 옮겨 적지 마라.
 - 시나리오 매핑: `list_scenarios()` 의 `criterion` 으로 "이 영역은 어느 시나리오가 보나"를 안다.
 
-## 1) 변화 뽑기 — 목표마다, 범위 URL 마다
+## 1) 변화 뽑기 — 목표마다, 범위 URL 마다 → **전부 pending 에 먼저 저장**
 `WebFetch` 로 읽고 `seen/…json` 의 워터마크(마지막 본 항목의 제목·날짜·해시)와 비교해 **그 뒤에 생긴 항목만** 뽑는다.
 - `release` 류: 항목(버전·날짜·제목·본문) 단위.
 - `settings`·`docs`·`plan` 류: 페이지 해시가 바뀌었으면 **무엇이 바뀌었나**를 이전 저장본과 diff 로 뽑는다(저장본이 없으면 이번 것을 저장하고 "기준선 확보"로 끝).
-워터마크는 **요청서를 다 쓴 뒤에** 올린다. 중간에 실패하면 다음 날 다시 잡히게.
+
+🚨 **수집과 발행을 분리한다** (R15). 뽑은 변화는 선별 전에 **모두** `pending.jsonl` 에 한 줄씩 넣는다:
+`{change_id: sha1(url+제목+날짜), slug, url, date, title, quote, state:"pending"}`. 같은 change_id 가 이미 있으면 건너뛴다.
+**워터마크는 그 URL 의 변화가 전부 pending 에 들어간 직후 올린다** — 요청서를 쓴 뒤가 아니다. 그래야 하루 한도(§3)에 밀린
+항목이 다음 날 사라지지 않는다. fetch 가 실패(timeout·429·5xx)한 URL 은 워터마크를 **건드리지 않고** 다음 날 다시 읽는다.
 
 ## 2) 선별 — 항목마다 두 질문. 하나라도 예면 올린다
 **① 점검기준 33개 중 무엇에 걸리나** — 정본 표의 코드로. 걸리면 코드와 영역(A1…F10)을 단다.
@@ -33,7 +38,7 @@ allowed-tools: [WebFetch, Read, Write, Bash]
 - 자율 실행 범위가 넓어짐 · 승인(HITL) 경계가 물러남
 - 새 벤더·수집기·호스팅이 경로에 끼어듦
 - 로깅·감사 범위가 줄어듦
-②로 올린 건 `기준 밖` 으로 표시한다. **기준 밖 항목이 쌓이는 곳이 33개의 갭이다.**
+②로 올린 건 `기준 밖` 으로 표시한다. 선별 결과는 pending 행의 `state` 로 남긴다: `selected`(올림) · `skipped`(무관, 사유) — 파일을 지우지 않는다. **기준 밖 항목이 쌓이는 곳이 33개의 갭이다.**
 
 **원칙**
 - **이름이 아니라 동작을 본다.** "새 기능 X" 는 X 가 무엇을 열고 닫는지 읽어야 걸린다. 못 읽으면 `?` 로 올리고 사람에게 넘긴다.
@@ -41,9 +46,12 @@ allowed-tools: [WebFetch, Read, Write, Bash]
 - **판정하지 않는다.** 릴리스 노트에 "SOC2 갱신"이라 써 있어도 충족으로 적지 않는다 — "5.2.A 를 다시 보라"까지.
 
 ## 3) 요청서 — 하루 최대 6개, 하나당 5~20줄, 표 없음
-AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 만들지 마라.**
-- **신규 SaaS 1개** (타입 A) — `status:"new"` 목표 중 범위가 가장 찬 것 하나. "이 SaaS 를 전체 리뷰하라" + 왜 지금인가 + 어디부터 볼지.
-- **업데이트 5개** (타입 B) — 기존 목표의 변화 중 **가장 중요한 5건.** 한 건 = 한 변화. 여러 SaaS 에 걸쳐도 된다.
+AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 만들지 마라.** 요청서는 **pending 큐를 소비**하는 단계다:
+- **신규 SaaS 1개** (타입 A) — `targets.json` 에서 `status:"new"` 이면서 범위가 가장 찬 것 하나. 요청서에 넣으면 그 목표를
+  **`status:"review_requested"`, `request_id`** 로 바꾼다 (R17). 이미 `review_requested`/`reviewing` 인 목표는 다시 고르지 않는다.
+  AAR 리뷰 세션이 생기면(`last_review_session` 채워짐) `active` 로 올린다.
+- **업데이트 5개** (타입 B) — pending 에서 `state:"selected"` 이고 아직 `request_id` 가 없는 것 중 **가장 중요한 5건**.
+  요청서에 넣은 행은 `request_id` 를 적어 `requested` 로 바꾼다. **안 뽑힌 selected 행은 그대로 남아 다음 날 후보가 된다.**
 - 6개가 안 차면 있는 만큼만. 억지로 채우지 마라. **변화 없으면 0개.**
 
 한 건의 꼴 (5~20줄):
@@ -55,10 +63,11 @@ AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 
 AAR 에게: <어느 시나리오로 무엇을 실측하라, 1~3줄>
 근거: <URL>
 ```
-파일: `~/.aas/requests/YYYY-MM-DD.md` 하나에 6개를 이어 쓴다. 제외한 항목은 `log.jsonl` 에만 남긴다(요청서에 안 넣는다).
+파일: `~/.aas/requests/YYYY-MM-DD.md`. `request_id = YYYY-MM-DD-<n>`. **같은 날 재실행하면 기존 파일에 이어 쓴다**(덮어쓰지 않는다);
+이미 `requested` 인 행은 다시 안 나오므로 중복 발행이 없다. 제외한 항목은 pending/log 에만 남긴다.
 
 ## 4) 마무리
-- 워터마크 갱신 → `log.jsonl` 에 `op:"request"`(파일 경로, 항목 수) 또는 `op:"nochange"`.
+- `log.jsonl` 에 `op:"request"`(request_id·항목 수) 또는 `op:"nochange"`. (워터마크는 §1 에서 이미 올렸다.)
 - 출력은 짧게:
 ```
 [aas_search YYYY-MM-DD]  목표 N개 · URL M개 읽음 → 요청 6 (신규 1 · 업데이트 5) → ~/.aas/requests/YYYY-MM-DD.md

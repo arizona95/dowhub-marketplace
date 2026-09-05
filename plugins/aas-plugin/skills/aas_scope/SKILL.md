@@ -15,11 +15,13 @@ allowed-tools: [WebFetch, WebSearch, Read, Write, Bash]
 
 ## 0) 상태 파일 — `~/.aas/`
 ```
-targets.json   { "<slug>": { "name", "vendor", "kind", "homepage", "status": "new|active|dropped",
-                             "added": "YYYY-MM-DD", "reason", "last_review_session": "" } }
-scope.json     { "_ranking": [ {url, added, reason} ],
-                 "<slug>":   [ {url, kind: "release|changelog|settings|plan|docs", added, reason, alive} ] }
-log.jsonl      한 줄 = { ts, skill:"aas_scope", op:"add_target|add_url|drop_url|drop_target", slug, url, reason }
+targets.json   { "<slug>": { "name", "vendor", "kind", "homepage",
+                             "status": "new|review_requested|reviewing|active|dropped",   ← 전이는 aas_search 가 한다(R17)
+                             "added": "YYYY-MM-DD", "reason", "request_id": "", "last_review_session": "" } }
+scope.json     { "_ranking": [ {url, added, reason, health} ],
+                 "<slug>":   [ {url, kind: "release|changelog|settings|plan|docs", added, reason,
+                                health: "healthy|redirected|transient_error|gone|pending_removal", fails: 0} ] }
+log.jsonl      한 줄 = { ts, skill:"aas_scope", op:"add_target|add_url|mark_url|drop_target|skip", slug, url, reason }
 ```
 없으면 만든다. **`_ranking` 이 비어 있으면 스스로 찾는다** — 사용자에게 묻지 마라(§0-1).
 
@@ -52,9 +54,16 @@ log.jsonl      한 줄 = { ts, skill:"aas_scope", op:"add_target|add_url|drop_ur
 🚨 **벤더 공식 URL 만.** 서드파티 뉴스·블로그·요약 사이트는 범위가 아니다 — 거기 적힌 건 근거가 못 된다.
 찾은 URL 은 `WebFetch` 로 한 번 열어 **실제로 그 내용인지** 확인한 뒤 넣는다(제목·첫 문단으로 판단). 못 찾으면 `kind` 옆에 `"missing": true` 로 남기고 다음 실행 때 다시 찾는다.
 
-## 3) 죽은 URL 정리
-`scope.json` 의 모든 URL 을 `WebFetch` 로 연다. 404·이동·빈 페이지면 `alive:false` 로 바꾸고 `log.jsonl` 에 `op:"drop_url"`.
-바로 지우지 않는다 — 다음 실행에서 한 번 더 죽어 있으면 그때 제거. 이동(301)이면 새 URL 을 같은 kind 로 추가.
+## 3) URL 건강 상태 — 삭제는 사람이 한다 (R18)
+`scope.json` 의 모든 URL 을 `WebFetch` 로 열어 `health` 를 갱신한다. 상태는 다섯 개고 **제거 판단은 한 곳(사람)** 이다:
+| health | 언제 | 스킬이 하는 것 |
+|---|---|---|
+| `healthy` | 200 + 기대한 내용 | `fails=0` |
+| `redirected` | 301/302/308 | 새 목적지가 **벤더 공식**인지 다시 확인한 뒤 같은 kind 로 추가하고, 옛 URL 은 `pending_removal` |
+| `transient_error` | timeout·429·5xx·빈 응답 | `fails+=1`. **워터마크·저장본은 건드리지 않는다.** 다음 날 재시도 |
+| `gone` | 404·410, 또는 `fails>=3` | `pending_removal` 로 바꾸고 `log.jsonl` 에 `mark_url` |
+| `pending_removal` | 위에서 도달 | **스킬은 여기까지.** 실제 제거는 사람이 `scope.json` 에서 지운다 |
+(예전 "두 번 죽으면 제거" 규칙은 폐기 — 절대 규칙 "지우는 건 사람" 과 충돌했다.)
 
 ## 4) 출력 — 변경 요약만
 ```
@@ -67,5 +76,5 @@ log.jsonl      한 줄 = { ts, skill:"aas_scope", op:"add_target|add_url|drop_ur
 
 ## 절대 규칙
 - **URL 을 지어내지 마라.** 열어서 확인한 것만 넣는다.
-- **목표·범위를 지우는 건 사람이 확인한 뒤** — 이 스킬은 `dropped`/`alive:false` 표시까지만.
+- **목표·범위를 지우는 건 사람이 확인한 뒤** — 이 스킬은 `dropped`/`pending_removal` 표시까지만.
 - 제품 고유값을 스킬 본문에 박지 마라. 어느 SaaS 든 같은 절차다.
