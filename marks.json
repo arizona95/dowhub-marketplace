@@ -1,0 +1,218 @@
+{
+  "skills/gmail-peek": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": false,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "plugins/aar-plugin": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": false,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "plugins/aas-plugin": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "plugins/mcp-test-dowoo": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "plugins/remote-plugin-dowoo": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "mcp/aar-mcp": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": false,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "mcp/gmail-dowoo": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  },
+  "mcp/test-dowoo": {
+    "ruff": {
+      "ok": true,
+      "version": "0.16.6",
+      "tier": "basic"
+    },
+    "detect-secrets": {
+      "ok": true,
+      "version": "1.5.0",
+      "tier": "basic"
+    },
+    "pip-audit": {
+      "ok": true,
+      "version": "2.10.1",
+      "tier": "basic"
+    },
+    "black": {
+      "ok": true,
+      "version": "26.5.1",
+      "tier": "deep"
+    },
+    "skillspector": {
+      "ok": true,
+      "version": "skillspector 504+clawvet 57",
+      "tier": "deep"
+    }
+  }
+}
