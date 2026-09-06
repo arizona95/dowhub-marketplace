@@ -22,3 +22,7 @@ scope 가 지도, search 가 순찰. 매일 cron 은 `scope → search` 순.
 
 **기준 정본** — `aar-mcp` `list_guidance("점검기준")` §회사 체크리스트 코드 ↔ 점검영역. 사본 금지.
 컨셉 문서: `SDSreviewBLUE/docs/11_aas_컨셉.md`.
+
+## 상태 실행기 (`scripts/aas_store.py`, 0.1.5)
+스킬(LLM)은 후보와 본문만 내고 **상태 변경은 전부 이 스크립트가** 한다 — 락·원자 쓰기·저널 롤백·중복·한도(하루 5+1)·상태 전이·범위 밖 URL 검증·요청 멱등성.
+스킬에는 파일 쓰기 권한이 없다(외부 페이지를 읽는 권한과 상태를 바꾸는 권한 분리). 계약 테스트: `python3 scripts/test_aas_store.py`.
