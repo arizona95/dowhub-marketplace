@@ -20,6 +20,7 @@ allowed-tools: [WebFetch, WebSearch, Read, mcp__aas-mcp__sensing]
 `sensing("target_add", slug=S, name=N, reason="…")` · `sensing("url_add", slug=S|"_ranking", url=U, kind=K, reason="…")` ·
 `sensing("url_health", url=U, status="healthy|redirected|transient_error|gone", new_url=U2)` · `sensing("target_set", slug=S, status="dropped")` ·
 `sensing("log", skill="aas_scope", op="skip", slug=S, reason="…")`.
+에이전트 On/Off(변화관리 대상 여부)·삭제는 **사람이** 웹(스코프 › 에이전트 버튼) 또는 `target_toggle`/`target_remove` 로 한다 — 이 스킬은 새 목표를 넣기만 하고(기본 On) 끄거나 지우지 않는다.
 
 저장 항목 모양(참고용 — 도구가 관리한다)
 ```
