@@ -21,13 +21,14 @@ allowed-tools: []
 ## 1) 변화 카드(`kind=change`) — 카드가 지목한 것만 재실증
 1. `last_review_session` 이 있으면 **그 세션에 회차를 추가**한다(새 세션 금지 — 리포트·트리 이력이 한 곳에 쌓이게). 없으면 `<slug>-<YYYY-MM-DD>` 로 새 세션.
 2. env: 그 SaaS 의 env 가 running 이면 그대로, stopped 면 `env("start")`, 없으면 `env("create", …)` 로 만든다 — **사용자 확인 없이 진행한다**(2026-09-07 사용자 지시: 센싱 리뷰의 env 생성·기동은 스킬이 스스로).
+   🚨 **env 작업은 한 번에 하나**: create/start 를 부른 뒤 `env("get")` 이 running 이 될 때까지 기다리고 나서 다음 카드의 env 를 만진다(병렬 apply 는 30분 한도에 걸려 전부 죽는다 — 2026-09-07 실사고). create 는 구성요소를 주지 말고 **기본(최소) 구성**으로 만든다.
 3. 카드의 "AAR 에게" 문장이 지목한 시나리오를 `scenario-capture` 규칙으로 **라이브 재실증**한다(대개 1~2개). 4트리 노드가 바뀌면 `update_tree` 로 그 노드만 갱신(전수 재촬영 아님).
 4. 리포트는 **이전 회차 블록을 실은 채** `html_report` 재발행. `quality_ok` 가 true 여야 다음으로.
 5. `sensing_review_done(request_id, item=<change_id>, session=<세션>, scenario=<재실증한 시나리오>, summary=<5~10줄>)`.
    summary 규격: 무엇을 실측했나 1~3줄 / 판정(O·X·?)과 근거 1~3줄 / 카드가 물은 것에 대한 답 1~2줄 / 남은 것. 표 금지.
 
 ## 2) 신규 SaaS 카드(`kind=new_saas`) — 전수 리뷰
-1. 세션 `<slug>-<YYYY-MM-DD>`, 제품 노드 이름 = slug. env 는 새로 만든다(explicit·exp-close) — 확인 없이.
+1. 세션 `<slug>-<YYYY-MM-DD>`, 제품 노드 이름 = slug. env 는 새로 만든다(explicit·exp-close, 기본 최소 구성, 다른 env 작업이 끝난 뒤) — 확인 없이.
 2. `skill("get", "aar_review")` 절차 **그대로**(원장 전수 → S0 → S1(4트리 포함) → S2 → S3, aar-reviewer PASS). 로그인이 필요한 제품이면 로그인 벽까지 진행하고 그 이후는 ⛔ + 사유(로그인은 사용자 몫).
 3. 원장 todo=0 이 되면 `sensing_review_done(request_id, item="target:<slug>", session=<세션>, scenario="S3-1", summary=…)`. 이러면 목표 상태가 `active` 로 바뀌고 다음 주부터 `aas_search` 의 변화관리 대상 후보가 된다(스코프 On 은 사람이 켠다).
 4. 로그인 벽 등 외부 사유로 원장을 못 닫으면 완료 표시를 **하지 않는다**. 사유를 마지막 보고에 적는다.
