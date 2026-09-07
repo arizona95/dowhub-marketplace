@@ -6,15 +6,15 @@ description: |
   ① 랭킹·목록 페이지를 훑어 새 SaaS 를 목표에 넣고 ② 리뷰한 SaaS 마다 업데이트 페이지·설정 레퍼런스를
   범위에 넣고 ③ 죽은 URL 을 뺀다. "추적 대상 늘려", "이 SaaS 도 지켜봐", "업데이트 페이지 찾아" 일 때.
   매일 cron 에선 aas_search 보다 먼저 돈다. (범위 안을 보는 건 aas_search.)
-allowed-tools: [WebFetch, WebSearch, Read, mcp__aar-mcp__sensing]
+allowed-tools: [WebFetch, WebSearch, Read, mcp__aas-mcp__sensing]
 ---
 
 # 목표·범위 탐색·갱신 (aas_scope)
 
 `aas_search` 가 순찰할 **지도**를 그린다. 지도가 낡으면 순찰이 헛돈다.
 
-## 0) 상태 — 🚨 서버 저장소(aar-mcp `sensing` 도구)에만 있다
-로컬 파일은 없다. 모든 조회·변경은 aar-mcp 의 **`sensing(action=…)`** 도구로 한다(이하 `sensing`). 어느 PC 에서 돌려도 서버
+## 0) 상태 — 🚨 서버 저장소(aas-mcp `sensing` 도구)에만 있다
+로컬 파일은 없다. 모든 조회·변경은 **aas-mcp** 의 `sensing(action=…)` 도구로 한다(이하 `sensing`). 어느 PC 에서 돌려도 서버
 `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentsensing/** 에서 읽힌다. 도구가 URL 형식·중복·상태 전이를 검증한다.
 `{"ok":false}` 가 오면 사유를 보고하고 그 항목은 멈춘다.
 `sensing("target_add", slug=S, name=N, reason="…")` · `sensing("url_add", slug=S|"_ranking", url=U, kind=K, reason="…")` ·
