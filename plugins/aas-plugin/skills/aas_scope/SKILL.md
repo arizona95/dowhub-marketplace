@@ -48,7 +48,9 @@ log.jsonl      한 줄 = { ts, skill:"aas_scope", op:"add_target|add_url|mark_ur
 - **에이전트/코딩·업무 도구인가** — 단순 챗봇·소비자 앱은 아님.
 - **조직이 도입할 법한가** — 기업 플랜·관리자 기능이 있거나 있을 것으로 보이나.
 - **이미 목표에 있나** — slug 로 대조. 별칭(제품명 바뀜)도 `name` 으로 대조.
-통과하면 `sensing("target_add", slug=<slug>, name=<이름>, reason="<어느 랭킹 페이지 몇 번째에서 봤고 왜 통과했나>")` (status 는 new 로 들어간다).
+통과하면 `sensing("target_add", slug=<slug>, name=<이름>, reason="<어느 랭킹 페이지 몇 번째에서 봤고 왜 통과했나>", rank=<순위 숫자>, rank_source="<페이지>")` (status 는 new·Off 로 들어간다).
+🚨 **랭킹 순위(rank)는 반드시 숫자로 기록한다** — 여러 페이지에 나오면 **가장 좋은(작은) 순위**를 쓴다. 이미 있는 목표도 매번 `target_add`(또는 `target_rank`)로 순위를 갱신한다.
+신규 SaaS 리뷰 후보는 "리뷰 안 된(new) 에이전트 중 rank 1위" 이므로, rank 가 없으면 후보에서 빠진다.
 거른 것도 `sensing("log", skill="aas_scope", op="skip", slug=<slug>, reason="…")` 으로 남긴다 — 다음 달 같은 이름을 또 거르지 않게.
 
 ## 2) 목표마다 범위 채우기 — 🚨 **On 인 에이전트만** (`sensing("target_list", state="on")`)
