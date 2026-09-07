@@ -52,10 +52,11 @@ allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
 - **판정하지 않는다.** 릴리스 노트에 "SOC2 갱신"이라 써 있어도 충족으로 적지 않는다 — "5.2.A 를 다시 보라"까지.
 
 ## 3) 요청서 = 랭킹 세션 — 하루 최대 6개, 하나당 5~20줄, 표 없음
-요청서 하나가 웹(https://dowmain.org/agentsensing/ › 랭킹)의 **세션 하나**로 쌓인다. 🚨 **최근 30일 안에 바뀐 센싱 카드(변화 날짜 기준)·최근 30일 안에 발견된 에이전트, 그리고 On 인 에이전트**에서만 뽑는다 — 아니면 도구가 거부한다. 카드의 리뷰 On/Off 는 aar 가 리뷰를 끝내고 `review_done` 을 부를 때 켜진다(이 스킬은 건드리지 않는다).
+요청서 하나가 웹(https://dowmain.org/agentsensing/ › 랭킹)의 **세션 하나**로 쌓인다. 🚨 변화 5건은 **최근 30일 안에 바뀐 센싱 카드(변화 날짜 기준)이고 On 인 에이전트**에서만, 신규 1건은 **리뷰 안 된 에이전트 중 랭킹 1위**(최근 30일 발견)에서만 뽑는다 — 아니면 도구가 거부한다. 카드의 리뷰 On/Off 는 aar 가 리뷰를 끝내고 `review_done` 을 부를 때 켜진다(이 스킬은 건드리지 않는다).
 AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 만들지 마라.** 요청서는 **pending 큐를 소비**하는 단계다:
-- **신규 SaaS 1개** (타입 A) — `sensing("target_list", status="new")` 중 범위가 가장 찬 것 하나. 도구가 요청서 생성 때 그 목표를
-  **`review_requested` + `request_id`** 로 바꾼다 (R17). `review_requested`/`reviewing` 인 목표는 `new` 가 아니라 다시 못 고른다.
+- **신규 SaaS 1개** (타입 A) — `sensing("ranking_candidate")` 가 주는 **리뷰 안 된(new) 에이전트 중 랭킹 1위** 하나(스코프 On/Off 와 무관 —
+  On/Off 는 변화관리에만 쓴다). 다른 걸 올리면 도구가 거부한다. 도구가 요청서 생성 때 그 목표를 **`review_requested` + `request_id`** 로 바꾼다 (R17).
+  `review_requested`/`reviewing`/`active` 인 목표는 후보가 아니다.
   AAR 리뷰 세션이 생기면 `sensing("target_set", slug=S, status="reviewing", session=<세션>)` → 끝나면 `active`.
 - **업데이트 5개** (타입 B) — `sensing("pending", state="selected")` 중 **가장 중요한 5건**. 6건 이상 넣으면 도구가 거부한다.
   요청서에 들어간 행은 도구가 `requested` + `request_id` 로 바꾼다. **안 뽑힌 selected 행은 그대로 남아 다음 날 후보가 된다.**
