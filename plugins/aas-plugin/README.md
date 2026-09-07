@@ -11,18 +11,6 @@
 
 scope 가 지도, search 가 순찰. 매일 cron 은 `scope → search` 순.
 
-**상태** — `~/.aas/` (v0.1 로컬. cron 이 이 PC 에서 돌므로). 서버 이전은 추후.
-```
-~/.aas/targets.json     목표 목록
-~/.aas/scope.json       목표별 범위 URL
-~/.aas/seen/            URL 별 워터마크
-~/.aas/requests/        생성된 요청서
-~/.aas/log.jsonl        추가·제거·요청 이력
-```
-
-**기준 정본** — `aar-mcp` `list_guidance("점검기준")` §회사 체크리스트 코드 ↔ 점검영역. 사본 금지.
-컨셉 문서: `SDSreviewBLUE/docs/11_aas_컨셉.md`.
-
-## 상태 실행기 (`scripts/aas_store.py`, 0.1.5)
-스킬(LLM)은 후보와 본문만 내고 **상태 변경은 전부 이 스크립트가** 한다 — 락·원자 쓰기·저널 롤백·중복·한도(하루 5+1)·상태 전이·범위 밖 URL 검증·요청 멱등성.
-스킬에는 파일 쓰기 권한이 없다(외부 페이지를 읽는 권한과 상태를 바꾸는 권한 분리). 계약 테스트: `python3 scripts/test_aas_store.py`.
+**상태** — 서버 저장소 하나(aar-mcp `sensing` 도구 → AgentReview 서버 `runs/aas.sqlite`). 로컬 파일 없음.
+어느 PC 에서 스킬을 돌려도 같은 곳에 쌓이고, **https://dowmain.org/agentsensing/** (읽기 전용 웹)에서 목표·범위 URL·변화 큐·요청서·로그를 본다.
+도구가 락·트랜잭션·중복·하루 5+1 한도·상태 전이·범위 밖 URL·요청 멱등을 검증한다(스킬은 후보와 본문만 낸다 — 파일 쓰기 권한 없음).
