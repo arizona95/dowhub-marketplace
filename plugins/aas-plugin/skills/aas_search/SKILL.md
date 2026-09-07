@@ -17,8 +17,9 @@ allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
   `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentsensing/** 에서 누구나 읽는다. 어느 PC 에서 돌려도 같은 곳에 쌓인다.
   도구가 중복·한도·상태 전이·범위 밖 URL 을 검증한다. 나는 **후보와 사유(본문)만** 낸다.
 - 도구 응답이 `{"ok": false, "error": …}` 면 그 사유를 그대로 보고하고 **그 항목은 멈춘다**. 우회 금지.
-- 시작: `sensing("summary")` · 목표: `sensing("target_list")` · 범위: `sensing("url_list")`.
-- 기준 정본: 이 스킬의 `refs/checklist-33.md`(회사 체크리스트 코드 ↔ 점검영역 A1…F10) 를 Read 로 읽는다. 여기 옮겨 적지 마라.
+- 시작: `sensing("summary")` · 목표: `sensing("target_list", state="on")` · 범위: `sensing("url_list", state="on")`.
+  🚨 **On 인 에이전트만 변화관리 대상이다.** Off 인 에이전트(스코프에서 사람이 끈 것)의 URL 은 읽지 않는다 — 넣어도 도구가 거부한다.
+- 기준 정본: `sensing("criteria_get")` 의 `text`(회사 체크리스트 코드 ↔ 점검영역 A1…F10 — 웹 스코프 › 기준 스킬에서 사람이 편집). 여기 옮겨 적지 마라.
   (aar 와 무관 — 어느 시나리오가 보는지는 aar 가 나중에 요청서를 읽을 때 정한다.)
 
 ## 1) 변화 뽑기 — 목표마다, 범위 URL 마다 → **전부 pending 에 먼저 저장**
@@ -50,7 +51,8 @@ allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
 - **제외도 근거를 남긴다.** `change_skip` 의 reason 이 그 기록이다. 안 그러면 누락과 구분이 안 된다.
 - **판정하지 않는다.** 릴리스 노트에 "SOC2 갱신"이라 써 있어도 충족으로 적지 않는다 — "5.2.A 를 다시 보라"까지.
 
-## 3) 요청서 — 하루 최대 6개, 하나당 5~20줄, 표 없음
+## 3) 요청서 = 랭킹 세션 — 하루 최대 6개, 하나당 5~20줄, 표 없음
+요청서 하나가 웹(https://dowmain.org/agentsensing/ › 랭킹)의 **세션 하나**로 쌓인다. 🚨 **최근 30일 안에 바뀐 센싱 카드(변화 날짜 기준)·최근 30일 안에 발견된 에이전트, 그리고 On 인 에이전트**에서만 뽑는다 — 아니면 도구가 거부한다. 카드의 리뷰 On/Off 는 aar 가 리뷰를 끝내고 `review_done` 을 부를 때 켜진다(이 스킬은 건드리지 않는다).
 AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 만들지 마라.** 요청서는 **pending 큐를 소비**하는 단계다:
 - **신규 SaaS 1개** (타입 A) — `sensing("target_list", status="new")` 중 범위가 가장 찬 것 하나. 도구가 요청서 생성 때 그 목표를
   **`review_requested` + `request_id`** 로 바꾼다 (R17). `review_requested`/`reviewing` 인 목표는 `new` 가 아니라 다시 못 고른다.
