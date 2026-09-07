@@ -5,21 +5,21 @@ description: |
   aas 의 **주어진 목표·범위를 서칭한다.** 범위 URL 을 읽어 지난번 이후 변화를 뽑고, 점검기준 33개에
   걸리거나 보안상 중요한 변화를 골라 **AAR 리뷰 요청서**를 만든다. "오늘 뭐 바뀌었나", "이 SaaS 업데이트
   확인", "리뷰 요청서 만들어" 일 때. 매일 cron 의 본체(aas_scope 다음). 판정(O/X)은 안 한다.
-allowed-tools: [WebFetch, Read, mcp__aar-mcp__sensing, mcp__aar-mcp__list_guidance, mcp__aar-mcp__list_scenarios]
+allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
 ---
 
 # 목표·범위 서칭 → 리뷰 요청서 (aas_search)
 
 `aas_scope` 가 그린 지도를 순찰한다. **대부분의 날은 "변화 없음"으로 끝나야 정상**이다.
 
-## 0) 준비 — 🚨 상태는 서버 저장소(aar-mcp `sensing` 도구)에만 있다
-- 로컬 파일(`~/.aas/`)은 **없다.** 모든 조회·변경은 aar-mcp 의 **`sensing(action=…)`** 도구로 한다(이하 `sensing`). 결과는 서버
+## 0) 준비 — 🚨 상태는 서버 저장소(aas-mcp `sensing` 도구)에만 있다
+- 로컬 파일(`~/.aas/`)은 **없다.** 모든 조회·변경은 **aas-mcp** 의 `sensing(action=…)` 도구로 한다(이하 `sensing`). 결과는 서버
   `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentsensing/** 에서 누구나 읽는다. 어느 PC 에서 돌려도 같은 곳에 쌓인다.
   도구가 중복·한도·상태 전이·범위 밖 URL 을 검증한다. 나는 **후보와 사유(본문)만** 낸다.
 - 도구 응답이 `{"ok": false, "error": …}` 면 그 사유를 그대로 보고하고 **그 항목은 멈춘다**. 우회 금지.
 - 시작: `sensing("summary")` · 목표: `sensing("target_list")` · 범위: `sensing("url_list")`.
-- 기준 정본: `list_guidance("점검기준")` 을 읽고 **§회사 체크리스트 코드 ↔ 점검영역** 표를 든다. 여기 옮겨 적지 마라.
-- 시나리오 매핑: `list_scenarios()` 의 `criterion` 으로 "이 영역은 어느 시나리오가 보나"를 안다.
+- 기준 정본: 이 스킬의 `refs/checklist-33.md`(회사 체크리스트 코드 ↔ 점검영역 A1…F10) 를 Read 로 읽는다. 여기 옮겨 적지 마라.
+  (aar 와 무관 — 어느 시나리오가 보는지는 aar 가 나중에 요청서를 읽을 때 정한다.)
 
 ## 1) 변화 뽑기 — 목표마다, 범위 URL 마다 → **전부 pending 에 먼저 저장**
 `WebFetch` 로 읽고 워터마크(`sensing("watermark_get", url=U)` → 마지막 본 항목의 제목·날짜·해시)와 비교해 **그 뒤에 생긴 항목만** 뽑는다.

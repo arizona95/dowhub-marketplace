@@ -11,6 +11,6 @@
 
 scope 가 지도, search 가 순찰. 매일 cron 은 `scope → search` 순.
 
-**상태** — 서버 저장소 하나(aar-mcp `sensing` 도구 → AgentReview 서버 `runs/aas.sqlite`). 로컬 파일 없음.
+**상태** — 서버 저장소 하나(**aas-mcp** `sensing` 도구 → 서버 `runs/aas.sqlite`; aar-mcp 와 무관). 로컬 파일 없음.
 어느 PC 에서 스킬을 돌려도 같은 곳에 쌓이고, **https://dowmain.org/agentsensing/** (읽기 전용 웹)에서 목표·범위 URL·변화 큐·요청서·로그를 본다.
 도구가 락·트랜잭션·중복·하루 5+1 한도·상태 전이·범위 밖 URL·요청 멱등을 검증한다(스킬은 후보와 본문만 낸다 — 파일 쓰기 권한 없음).
