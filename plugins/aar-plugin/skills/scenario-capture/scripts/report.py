@@ -55,6 +55,88 @@ import sys, os, json, glob, html, subprocess, datetime, pathlib
 FFMPEG_IMG = "linuxserver/ffmpeg"   # dockerized ffmpeg/ffprobe (no local install needed)
 
 
+
+# ── 분석 블록 실행기 ─────────────────────────────────────────────────────────
+# 🚨 예전엔 `subprocess.run(cmd, shell=True, cwd=repo)` 였다. 그 cmd 는 리포트 블록에서 오고,
+#    블록은 모델이 만들거나 operator 의 무인증 /build_report 로 들어온다 — 즉 **셸 명령이
+#    아무 게이트 없이 서버 사용자 권한으로 실행**됐다. Claude Code 라면 Bash 는 권한 프롬프트를
+#    거치는데, 이 경로는 그걸 통째로 우회한다.
+#    설계 의도(=숫자를 날조할 수 없게 실제로 돌려서 박는다)는 유지하되, **셸을 없애고 이 폴더의
+#    분석 스크립트만** 돌린다. 파이프·리다이렉트·`-c` 는 애초에 분석 스크립트가 아니다.
+_ANALYSIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_SHELL_META = ("|", ";", "&", ">", "<", "`", "$(", "\n", "\r")
+# 🚨 분석 블록이 돌릴 수 있는 스크립트는 이 **고정 목록**뿐이다(R13). 전엔 같은 폴더의 모든 .py 를
+#    허용해 `python3 report.py build …`(빌더 자신)·테스트 스크립트도 분석으로 실행됐다.
+_ANALYZERS = ("archive.py", "cli_dlp.py", "cli_egress.py", "cli_otel.py", "cli_tenant.py", "cli_tool.py")
+# 빌드 한 번 동안의 분석 실패 목록 — build() 가 비우고, 렌더러가 채우고, 끝에 결과로 내보낸다.
+_ANALYSIS_FAILURES = []
+
+
+def _analysis_argv(cmd):
+    """분석 cmd 문자열 → 실행 가능한 argv. 못 돌릴 것이면 (None, 사유)."""
+    import shlex
+    if not cmd or not cmd.strip():
+        return None, "빈 명령"
+    for meta in _SHELL_META:
+        if meta in cmd:
+            return None, (f"셸 문법({meta!r})은 실행하지 않는다 — 분석 블록은 "
+                          f"scenario-capture/scripts 의 분석 스크립트만 돌린다")
+    try:
+        argv = shlex.split(cmd)
+    except ValueError as e:
+        return None, f"명령을 파싱할 수 없다: {e}"
+    if len(argv) < 2:
+        return None, "형식은 `python3 <분석스크립트> <인자…>` 다"
+    if os.path.basename(argv[0]) not in ("python", "python3"):
+        return None, f"허용되지 않은 실행파일: {argv[0]!r} (python3 만)"
+    if argv[1].startswith("-"):
+        return None, f"옵션 실행({argv[1]!r})은 허용하지 않는다 — 스크립트 파일이어야 한다"
+    # 🚨 경로는 **무시하고 파일명만** 본다. 옛 리포트의 cmd 는 .claude/skills/... 같은 지금은
+    #    없는 경로를 갖고 있는데, 파일명으로 현재 폴더에서 찾으면 그대로 다시 돌릴 수 있고
+    #    동시에 폴더 밖 실행을 원천 차단할 수 있다.
+    name = os.path.basename(argv[1])
+    if not name.endswith(".py"):
+        return None, f"분석 스크립트가 아니다: {argv[1]!r}"
+    if name not in _ANALYZERS:
+        return None, f"허용된 분석 스크립트가 아니다: {name} (사용 가능: {', '.join(_ANALYZERS)})"
+    target = os.path.join(_ANALYSIS_DIR, name)
+    if not os.path.isfile(target):
+        return None, f"분석 스크립트 파일이 없다: {name}"
+    return [sys.executable, target] + argv[2:], None
+
+
+def _run_analysis_result(cmd, cwd):
+    """분석 명령을 셸 없이 실행 → {ok, exit_code, output, error}. 거부·예외·timeout·exit≠0 전부 ok=False.
+    (R13: 전엔 실패도 문자열로 바꿔 stdout 처럼 박혀 빌드가 성공으로 끝났다.)"""
+    argv, why = _analysis_argv(cmd)
+    if argv is None:
+        return {"ok": False, "exit_code": None, "output": "", "error": f"rejected: {why}"}
+    try:
+        env = dict(os.environ)
+        env.setdefault("AGENTREVIEW_REPO_ROOT", cwd or "")
+        res = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=120, env=env)
+        out = (res.stdout + res.stderr).rstrip()
+        if res.returncode != 0:
+            return {"ok": False, "exit_code": res.returncode, "output": out,
+                    "error": f"exit {res.returncode}"}
+        return {"ok": True, "exit_code": 0, "output": out or "(no output)", "error": ""}
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "exit_code": None, "output": "", "error": "timeout 120s"}
+    except Exception as e:                                   # noqa: BLE001
+        return {"ok": False, "exit_code": None, "output": "", "error": f"failed: {e}"}
+
+
+def _run_analysis(cmd, cwd):
+    """렌더용: 결과 문자열. 실패는 `[analysis FAILED: …]` 로 박고 _ANALYSIS_FAILURES 에 기록한다 —
+    빌드는 이걸 결과(build_result.json)로 내보내고 operator/MCP 가 발행을 막는다."""
+    r = _run_analysis_result(cmd, cwd)
+    if r["ok"]:
+        return r["output"]
+    _ANALYSIS_FAILURES.append({"cmd": cmd, "error": r["error"], "exit_code": r["exit_code"],
+                               "output": (r["output"] or "")[-800:]})
+    return f"[analysis FAILED: {r['error']}]" + (("\n" + r["output"]) if r["output"] else "")
+
+
 def _pathstr(p):
     """태그 path(list 또는 'a/b/c') → 'a/b/c'."""
     if isinstance(p, (list, tuple)):
@@ -262,6 +344,7 @@ def _img(rel, cls=""):
 def build(folder):
     global _FOLDER
     _FOLDER = folder  # _img 캐시버스터(파일 mtime)용
+    del _ANALYSIS_FAILURES[:]
     spec_p = os.path.join(folder, "report.json")
     if not os.path.exists(spec_p):
         sys.exit(f"missing {spec_p} — write it first (see report.py docstring)")
@@ -308,9 +391,13 @@ def build(folder):
     # 하드코딩은 Auto_Report 로 잘못 잡힌다(2026-07 버그) → `aar-plugin/skills/scenario-capture` 가 보일
     # 때까지 상위로 걸어올라가 진짜 repo root 를 찾는다. 못 찾으면 옛 동작(../../..)으로 폴백.
     def _find_repo(start):
+        # 1) operator 가 넘긴 명시 루트 2) 위로 올라가며 repo 표식(runs/envs 또는 Auto_Report) 3) 옛 규칙(상위 3단)
+        explicit = os.environ.get("AGENTREVIEW_REPO_ROOT")
+        if explicit and os.path.isdir(explicit):
+            return os.path.abspath(explicit)
         d = os.path.abspath(start)
         for _ in range(8):
-            if os.path.isdir(os.path.join(d, ".claude", "skills", "scenario-capture")):
+            if os.path.isdir(os.path.join(d, "runs", "envs")) or os.path.isdir(os.path.join(d, "Auto_Report")):
                 return d
             nd = os.path.dirname(d)
             if nd == d:
@@ -405,11 +492,7 @@ def build(folder):
         if t in ("analysis", "bash", "cmd"):  # 빌드 시 cmd 실제 실행되어 박힘(날조 불가)
             cmd = b.get("cmd", "")
             cap = f"<div class=acmd>{esc(b['caption'])}</div>" if b.get("caption") else ""
-            try:
-                res = subprocess.run(cmd, shell=True, cwd=repo, capture_output=True, text=True, timeout=120)
-                o = (res.stdout + res.stderr).rstrip() or "(no output)"
-            except Exception as e:
-                o = f"[analysis cmd failed: {e}]"
+            o = _run_analysis(cmd, repo)
             return cap + f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(o)}</pre>"
         if t in ("table", "tbl"):
             # 표 블록. rows 를 직접 주거나(정적), cmd 를 주면 빌드 시 실행해 stdout 을 TSV(탭구분)로
@@ -418,14 +501,10 @@ def build(folder):
             cols = b.get("columns") or []
             rows = b.get("rows")
             if rows is None and b.get("cmd"):
-                try:
-                    res = subprocess.run(b["cmd"], shell=True, cwd=repo,
-                                         capture_output=True, text=True, timeout=120)
-                    rows = [ln.split("\t") for ln in (res.stdout or "").splitlines() if ln.strip()]
-                    if not rows and res.stderr.strip():
-                        rows = [[f"[table cmd stderr] {res.stderr.strip()[:200]}"]]
-                except Exception as e:
-                    rows = [[f"[table cmd failed: {e}]"]]
+                out = _run_analysis(b["cmd"], repo)
+                rows = [ln.split("\t") for ln in out.splitlines() if ln.strip()]
+                if not rows:
+                    rows = [["(no output)"]]
             rows = rows or []
             o = [cap, "<table class=rt>"]
             if cols:
@@ -546,11 +625,7 @@ def build(folder):
             if b.get("caption"):
                 P.append(f"<div class=acmd>{esc(b['caption'])}</div>")
             cmd = b.get("cmd", "")
-            try:
-                res = subprocess.run(cmd, shell=True, cwd=repo, capture_output=True, text=True, timeout=120)
-                out = (res.stdout + res.stderr).rstrip() or "(no output)"
-            except Exception as e:
-                out = f"[analysis cmd failed: {e}]"
+            out = _run_analysis(cmd, repo)
             P.append(f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(out)}</pre>")
 
     if spec.get("why"):
@@ -578,12 +653,24 @@ def build(folder):
     # 내용 = report.html · report.docx(.html) · img/ · report.json + 원본 flow 아카이브. 다운로드는
     # operator 카드의 ⬇ 버튼에서 '세션-리포트.zip' 이름으로 떨어진다(본문 인라인 링크 없음).
     build_archive_zip(folder, an, repo)
+    # 빌드 결과(구조화) — operator/MCP 는 이 파일로 발행 가부를 정한다(R13: 분석 실패가 성공으로 안 보이게).
+    result = {"ok": not miss and not _ANALYSIS_FAILURES, "missing_frames": list(miss),
+              "analysis_failures": list(_ANALYSIS_FAILURES), "frames": len(refs) - len(miss)}
+    with open(os.path.join(folder, "build_result.json"), "w", encoding="utf-8") as fh:
+        json.dump(result, fh, ensure_ascii=False, indent=1)
+    if _ANALYSIS_FAILURES:
+        print(f"✗ analysis failures: {len(_ANALYSIS_FAILURES)}")
+        for f_ in _ANALYSIS_FAILURES:
+            print(f"    $ {f_['cmd']}  → {f_['error']}")
     # 세션 카드목록 HTML 재생성(전체 다운로드 zip 에 '보고서목록.html' 로 포함됨).
-    try:
-        from session_index import build_session_index
-        build_session_index(os.path.dirname(folder))
-    except Exception as e:
-        print(f"  (session index skip: {e})")
+    # 스테이징(공개 루트 밖 runs/report-staging) 빌드는 색인하지 않는다 — 발행 후 operator 가 공개 세션 폴더를 색인한다(R10).
+    if os.sep + "report-staging" + os.sep not in os.path.abspath(folder) and not os.path.basename(folder).startswith("."):
+        try:
+            from session_index import build_session_index
+            build_session_index(os.path.dirname(folder))
+        except Exception as e:
+            print(f"  (session index skip: {e})")
+    return result
 
 
 def build_archive_zip(folder, an, repo):
@@ -598,12 +685,38 @@ def build_archive_zip(folder, an, repo):
                     fp = os.path.join(root, fn)
                     z.write(fp, os.path.relpath(fp, folder))   # report.html·report.docx(.html)·img/·report.json
             if an and an.get("archive"):                        # 원본 flow 아카이브(있으면)
-                ap = os.path.join(repo, an["archive"])
-                if os.path.isdir(ap):
-                    for root, _, files in os.walk(ap):
+                # 2026-09-06 R04: archive 는 <repo>/runs/envs 아래여야만 넣는다. 절대경로·'..'·symlink 탈출은
+                # 무시(예전엔 os.path.join 이 절대경로면 repo 를 버려 임의 디렉터리가 공개 ZIP 에 들어갔다).
+                arc = str(an["archive"])
+                envs_root = os.path.realpath(os.path.join(repo, "runs", "envs"))
+                ap = os.path.realpath(os.path.join(repo, arc))
+                # 2026-09-07 재검토: runs/envs 아래엔 terraform 상태·변수(비밀)도 있다. **캡처 아카이브 폴더**
+                # (runs/envs/<env>/captures/archives/<folder>) 정확히 그 깊이만 허용하고, 데이터 파일 확장자만 넣는다.
+                parts = arc.replace("\\", "/").strip("/").split("/")
+                shape_ok = len(parts) == 6 and parts[:2] == ["runs", "envs"] and parts[3:5] == ["captures", "archives"]
+                ok_arc = (not os.path.isabs(arc) and ".." not in parts and shape_ok
+                          and ap.startswith(envs_root + os.sep) and os.path.isdir(ap))
+                if not ok_arc:
+                    print(f"  (archive skip: runs/envs/<env>/captures/archives/<folder> 형태가 아니거나 없음 {arc!r})")
+                ARCHIVE_EXT = (".json", ".txt", ".har", ".log", ".md", ".csv", ".tsv", ".jsonl")
+                MAX_FILES, MAX_BYTES = 5000, 500 * 1024 * 1024
+                n_files = n_bytes = 0
+                if ok_arc:
+                    for root, dirs, files in os.walk(ap, followlinks=False):
                         for fn in files:
                             fp = os.path.join(root, fn)
+                            if os.path.islink(fp) or not os.path.realpath(fp).startswith(ap + os.sep):
+                                continue
+                            if not fn.lower().endswith(ARCHIVE_EXT) or "tfstate" in fn or fn.endswith(".tfvars"):
+                                continue
+                            n_files += 1; n_bytes += os.path.getsize(fp)
+                            if n_files > MAX_FILES or n_bytes > MAX_BYTES:
+                                print(f"  (archive truncated at {n_files} files / {n_bytes} bytes)")
+                                break
                             z.write(fp, os.path.join("flow-archive", os.path.relpath(fp, ap)))
+                        else:
+                            continue
+                        break
     except Exception:
         pass
 
@@ -615,4 +728,5 @@ if __name__ == "__main__":
     if cmd == "grab":
         grab(folder, [float(x) if "." in x else int(x) for x in sys.argv[3:]])
     else:
-        build(folder)
+        r = build(folder)
+        sys.exit(0 if r.get("ok") else 3)   # 3 = 프레임 누락/분석 실패(operator 가 발행 차단)

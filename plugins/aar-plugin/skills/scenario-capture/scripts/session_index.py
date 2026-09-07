@@ -82,7 +82,7 @@ def build_session_index(session_dir):
     reps = []
     for name in sorted(os.listdir(session_dir)):
         rdir = os.path.join(session_dir, name)
-        if not os.path.isdir(rdir):
+        if not os.path.isdir(rdir) or name.startswith("."):   # 점 폴더 = 빌드 스테이징(R10) — 목록에 안 낸다
             continue
         if not (os.path.isfile(os.path.join(rdir, "report.html")) or os.path.isfile(os.path.join(rdir, "report.json"))):
             continue

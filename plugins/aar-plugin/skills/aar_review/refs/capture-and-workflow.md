@@ -15,7 +15,9 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
 검은 화면이 찍힌다.
 
 **(B) 그 밖의 화면(공식문서 등) → 내가 떠서 POST**
-- 올리는 곳: `POST https://dowmain.org/api/v1/evidence` · body `{"label": "<라벨>", "image": "<dataURL>"}`
+- 올리는 곳: `POST https://dowmain.org/api/v1/evidence` · body `{"label": "<라벨>", "image": "<dataURL>", "session": "<이번 세션명>", "env": "<env>", "scenario": "<시나리오 id>", "url": "<찍은 화면 URL>"}`
+  🚨 **session 은 필수다(없으면 400).** 서버가 캡처를 그 세션에 귀속시켜(사이드카) 리포트 빌드 때 **같은 세션 증적만** 라벨로 고른다 —
+  다른 세션의 동명 캡처는 섞이지 않는다. 응답의 `evidence_id` 를 받아 두면 `shot` 블록에 `evidence_id` 로 정확히 그 파일을 가리킬 수 있다(재촬영 시 새 id).
 - 뜨는 법: 브라우저 스크린샷의 dataURL. RDP canvas 를 직접 떠야 하면 `toDataURL`(영역 크롭 1:1, 1920px).
 - 값 판독은 **화면 텍스트 추출**로 — 픽셀을 눈으로 읽는 것보다 오독이 없다.
 
