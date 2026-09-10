@@ -21,6 +21,7 @@
     "scenario_start",
     "sensing_ranking",
     "sensing_review_done",
+    "sensing_review_undo",
     "skill",
     "tree",
     "update_tree",

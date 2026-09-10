@@ -45,6 +45,7 @@ allowed-tools: []
 ## 절대 규칙
 - 완료(On)는 **quality_ok 통과한 리포트**가 있을 때만(`sensing_review_done` 이 session·scenario 로 검사한다 — 둘 다 필수). 요약만 쓰고 On 켜기 금지. aas 도구엔 완료 액션이 없다.
 - 세션 소속: `sensing_review_done` 은 세션의 `product` 가 카드 slug 와 같거나 그 SaaS 의 `last_review_session` 일 때만 받는다. `product` 를 안 넘긴 새 세션은 완료 표시가 거부된다.
+- 잘못 켠 완료는 `sensing_review_undo(request_id, item, reason)` 로 되돌린다(새 리포트 불필요, 사유는 로그에 남는다). 되돌린 뒤 다시 완료하려면 validated 리포트가 다시 필요하다.
 - 카드가 지목하지 않은 시나리오를 늘리지 마라(전수는 신규 SaaS 에서만).
 - 새 시나리오가 필요해 보여도 `scenario("create", …)` 는 승인 필요 — 이 스킬 안에서 만들지 않는다.
 - aas 쪽(스코프·URL·기준)은 손대지 않는다. aar 는 읽고(랭킹) 완료만 표시한다.
