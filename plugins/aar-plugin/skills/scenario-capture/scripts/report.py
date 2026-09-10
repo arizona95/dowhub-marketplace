@@ -678,11 +678,13 @@ def build_archive_zip(folder, an, repo):
     zpath = os.path.join(folder, "archive.zip")
     try:
         with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-            for root, _, files in os.walk(folder):
+            for root, _, files in os.walk(folder, followlinks=False):
                 for fn in files:
                     if fn == "archive.zip":          # 자기 자신만 제외
                         continue
                     fp = os.path.join(root, fn)
+                    if os.path.islink(fp):            # 리포트 폴더 안 symlink 는 싣지 않는다(밖의 파일이 ZIP 에 들어옴)
+                        continue
                     z.write(fp, os.path.relpath(fp, folder))   # report.html·report.docx(.html)·img/·report.json
             if an and an.get("archive"):                        # 원본 flow 아카이브(있으면)
                 # 2026-09-06 R04: archive 는 <repo>/runs/envs 아래여야만 넣는다. 절대경로·'..'·symlink 탈출은
@@ -694,8 +696,12 @@ def build_archive_zip(folder, an, repo):
                 # (runs/envs/<env>/captures/archives/<folder>) 정확히 그 깊이만 허용하고, 데이터 파일 확장자만 넣는다.
                 parts = arc.replace("\\", "/").strip("/").split("/")
                 shape_ok = len(parts) == 6 and parts[:2] == ["runs", "envs"] and parts[3:5] == ["captures", "archives"]
-                ok_arc = (not os.path.isabs(arc) and ".." not in parts and shape_ok
-                          and ap.startswith(envs_root + os.sep) and os.path.isdir(ap))
+                # 2026-09-10 재검토: 폴더 자체가 symlink(captures/archives/link → terraform)면 문자열 shape 는 통과하고
+                # realpath 는 envs 아래라 통과했다. **실제 경로**도 같은 shape 여야 한다(경로 어디에도 symlink 불허).
+                real_parts = os.path.relpath(ap, os.path.realpath(repo)).replace("\\", "/").split("/")
+                real_shape_ok = real_parts == parts
+                ok_arc = (not os.path.isabs(arc) and ".." not in parts and shape_ok and real_shape_ok
+                          and ap.startswith(envs_root + os.sep) and os.path.isdir(ap) and not os.path.islink(os.path.join(repo, arc)))
                 if not ok_arc:
                     print(f"  (archive skip: runs/envs/<env>/captures/archives/<folder> 형태가 아니거나 없음 {arc!r})")
                 ARCHIVE_EXT = (".json", ".txt", ".har", ".log", ".md", ".csv", ".tsv", ".jsonl")
