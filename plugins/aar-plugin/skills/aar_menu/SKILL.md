@@ -3,8 +3,8 @@ name: aar_menu
 version: 1.0.0
 description: |
   원천 트리(menu/session/settings/retention)의 **노드 하나**를 조사해 보고서를 쓰고, 그 노드에
-  태그로 붙인다. 뷰어에서 보고서가 비어 있는 항목의 "📋 복사" 로 받은 `/aar_menu <트리> <경로>`
-  한 줄로 불린다. "이 메뉴 조사해줘", "이 항목 뭐하는 건지 봐줘" 일 때.
+  태그로 붙인다. `/aar_menu <트리> <경로>` 한 줄로 불린다(경로는 `tree("get", …)` 로 찾는다).
+  "이 메뉴 조사해줘", "이 항목 뭐하는 건지 봐줘" 일 때.
   (전수는 `/aar_review`, 주기 추적은 `/aar_update` — 이건 **한 항목만**.)
 allowed-tools:
   - Read
@@ -21,7 +21,7 @@ allowed-tools:
 /aar_menu menu claude-code-app/개인설정/Desktop app/Developer
 ```
 - **트리** = `menu` · `session` · `settings` · `retention` 중 하나.
-- **노드경로** = 루트부터 `/` 로 이은 경로. 뷰어의 복사 버튼이 그대로 넣어준다.
+- **노드경로** = 루트부터 `/` 로 이은 경로(`tree("get", <트리>)` 의 path 그대로). 공개 뷰어에는 트리 화면이 없다(2026-09-13 제거) — 트리는 aar-mcp 로만 본다.
 - 인자가 없거나 불완전하면 **되묻지 말고** `tree("list")` → `tree("get", …)` 로 후보를 보여주고
   어느 항목인지 한 번만 확인한다.
 
