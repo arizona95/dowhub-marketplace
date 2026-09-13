@@ -18,7 +18,7 @@ allowed-tools:
 
 ## 0) 인자 — `/aar_menu <트리> <노드경로>`
 ```
-/aar_menu menu claude-code-app/개인설정/Desktop app/Developer
+/aar_menu menu claude-app/개인설정/Desktop app/Developer
 ```
 - **트리** = `menu` · `session` · `settings` · `retention` 중 하나.
 - **노드경로** = 루트부터 `/` 로 이은 경로. 뷰어의 복사 버튼이 그대로 넣어준다.
