@@ -24,8 +24,9 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 
 ## 1) 수집 — 리뷰 VM(user-window-pc) 안에서
 1. env 가 running 인지 `env("get")`. VM 의 Chrome 에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫).
-2. `menutoy("collect_cmd", product, source)` 가 주는 **한 줄**을 RDP 안 PowerShell 에 붙여 넣어 실행한다. 스크립트는 로그인된 Chrome 프로필
-   사본으로 헤드리스 Chrome 을 띄워 URL 마다 렌더된 DOM 을 뽑아 서버로 보내고(페이지당 1회), 서버가 바로 파싱한다.
+2. `menutoy("collect_cmd", product, source)` 가 주는 **한 줄**을 RDP 안 PowerShell 에 붙여 넣어 실행한다. 스크립트는 **로그인된 실제 Edge/Chrome**
+   을 DevTools 포트(9222)로 몰아 URL 마다 탭을 열어 렌더된 DOM 을 뽑아 서버로 보내고(페이지당 1회), 서버가 바로 파싱한다.
+   브라우저가 디버그 포트를 안 열고 있으면 스크립트가 한 번 재시작한다(세션 복원, 로그인 유지) — 리뷰 중 열어둔 탭이 잠깐 닫혔다 돌아온다.
 3. 출력의 `changed`/`summary` 를 캡처(증적)로 남긴다. 전송이 실패하면(egress 차단 등) ⛔ 사유를 적고 멈춘다 — 우회 금지.
 
 ## 2) 파싱 확인 — `menutoy("sources", product)`
@@ -40,7 +41,7 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 
 ## 4) 체크리스트 연결 갱신
 - reparse 결과 `detail.added/removed/changed` 의 키를 보고, 체크리스트 항목이 가리키던 메뉴 키가 **사라지거나 바뀌었으면** annotations 를 고친다:
-  `menutoy("annotations", product)` → 해당 키(옛 localStorage 키 그대로: 팝업 설정·체크리스트 연결)를 `menutoy("annotation_set", product, key, value)` 로.
+  `menutoy("checklist_set", …)`·`menutoy("popup_set", …)`·`menutoy("web_add", …)` 로(원시 키를 직접 만지는 `annotation_set` 은 마지막 수단).
 - 새로 생긴 메뉴(added)가 보안 항목이면 팝업 권고를 채운다(sev·adv·risk). 판정(O/X/-/?)은 **근거가 있을 때만**, 없으면 ?.
 
 ## 5) 보고
