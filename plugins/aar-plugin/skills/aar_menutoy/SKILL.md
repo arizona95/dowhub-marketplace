@@ -47,7 +47,14 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
   `menutoy("checklist_set", …)`·`menutoy("popup_set", …)`·`menutoy("web_add", …)` 로(원시 키를 직접 만지는 `annotation_set` 은 마지막 수단).
 - 새로 생긴 메뉴(added)가 보안 항목이면 팝업 권고를 채운다(sev·adv·risk). 판정(O/X/-/?)은 **근거가 있을 때만**, 없으면 ?.
 
-## 5) 보고
+## 5) 웹 근거 카드 — 메뉴가 아니라 문서로 확인하는 항목
+- 인증(SOC 2·ISO)·약관(학습 미사용)·보존/삭제·하위처리자·암호화·침해 대응처럼 **문서로 확인하는 체크리스트 항목**은 웹페이지 카드로 근거를 단다.
+  특히 검토 결과가 사전검토(pre)인데 연결 링크가 0개인 항목(화면에서 빨간 테두리)이 대상.
+- 그 SaaS 의 공식 페이지를 **직접 열어 본문을 읽고**(브라우저·WebFetch), 해당 문장이 실제로 있는 페이지만:
+  `menutoy("web_add", product, title="<제목 — 무엇을 증명하나>", url=<연 URL 그대로>, note="<해당 문장 요지 + 확인일>", ck="@genai.x.y.Z …", cert=True|False)`.
+  cert=True 는 인증 페이지만. 열지 않은 URL·기억으로 아는 내용은 날조다 — 넣지 마라. 페이지가 사라지거나 내용이 바뀌었으면 카드를 `web_remove` 하거나 note 를 갱신한다.
+
+## 6) 보고
 ```
 [aar_menutoy YYYY-MM-DD] <product> · 소스 N · 수집 <페이지수> · 파싱 오류 <n> · toy +a −r ✏c (커밋 <hash7>) · 체크리스트 연결 갱신 <n>건 · 막힘: <사유>
 ```
