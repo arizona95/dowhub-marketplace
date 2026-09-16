@@ -27,7 +27,8 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 2. `menutoy("collect", product, source, url="claude-exp-close")` 한 번. 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**에서
    소스에 등록된 URL 마다 탭을 열고 DOM 을 꺼내(클립보드 조각) 저장·파싱한다. 페이지당 정해진 횟수만 조작하고 끝난다 — 결과를 기다리며
    반복 호출하지 마라. 응답의 `pages[]`(ok·html_bytes·error) 와 `reparse` 를 그대로 보고에 쓴다.
-3. 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다). 한 페이지가 실패하면 그 URL 만 `meta={"urls":[…]}` 로 다시 한 번.
+3. 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다). 서버는 브라우저 창을 앞으로 올린 뒤 **활성 탭 주소창에 URL 을 쳐서** 이동하고, 조각 머리의 URL 이
+   요청한 URL 과 다르면 "활성 탭이 요청한 페이지가 아니다" 로 실패시킨다(다른 페이지의 DOM 을 그 URL 로 저장하지 않는다). 실패한 URL 만 `meta={"urls":[…]}` 로 다시 한 번.
    (헤드리스 브라우저·PowerShell 스크립트 방식은 이 VM 들에서 안 된다 — 2026-09-16 실측. collect_cmd 는 남겨두었지만 쓰지 않는다.)
 
 ## 2) 파싱 확인 — `menutoy("sources", product)`

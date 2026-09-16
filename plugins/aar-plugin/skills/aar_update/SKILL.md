@@ -30,6 +30,9 @@ allowed-tools:
 ## 절차
 1. **기준선 읽기** — 4트리 각각 `tree("get", tree_id)` (menu·session·settings·retention). "지난번엔 뭐가 있었나".
 2. **제품 재관찰** — 내 브라우저로 제품을 훑어 **바뀐 지점**을 찾는다(새 메뉴·사라진 항목·값 변경·새 세션형태·세팅 기본값 변경·보존정책 변경).
+2-1. **MenuToy 수집(env 를 켠 김에)** — 제품마다 `/aar_menutoy` 의 1)~4) 를 그대로: `menutoy("collect", product, source, url=<env>)` 로 소스별 웹 메뉴를 다시 긁고
+   → `menutoy("sources", product)` 로 파싱 오류 확인 → 깨졌으면 파서 수정·`reparse` → reparse 의 added/removed/changed 로 체크리스트 연결(`checklist_set`·`popup_set`·`web_add`) 갱신.
+   toy 의 +/− 가 곧 "메뉴가 바뀌었다"는 증거이므로 3)·5) 의 델타 판단에 같이 쓴다. VM 브라우저 로그인이 풀려 있으면 ⛔ 사유(로그인은 사용자 몫).
 3. **트리 델타 반영** — 바뀐 앵커에만 `update_tree(tree_id, node_path=[바뀐 지점], patch=[그 아래 현재])`. 삭제 판정은 앵커 서브트리 안에서만.
 4. **무엇이 바뀌었나 기록** — `tree("changelog", tree_id, since=지난추적일)` 로 이번 델타를 시간축으로 확인(added/−removed/~changed).
 5. **영향 보고서 갱신** — 그 변화가 통제/동작에 영향 있으면(예: 새 egress 경로, 새 관리자 토글, 보존기간 변경) **해당 시나리오만** 재실증(`scenario_start`→라이브 캡처→`html_report`) + 그 노드에 `tag` 로 보고서 재연결. 변화 없는 시나리오는 건드리지 마라.
