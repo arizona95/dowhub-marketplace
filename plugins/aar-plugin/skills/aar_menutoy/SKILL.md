@@ -22,12 +22,13 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 - toy 가 없으면 만든다: `menutoy("source_set", product, source, meta={kind, urls, title}, parser=<코드>, title=<제품 표시명>)`.
 - 소스별 `parse_errors`·`raw_pages`·`parsed_at` 을 본다. errors 가 있으면 3) 부터.
 
-## 1) 수집 — 리뷰 VM(user-window-pc) 안에서
-1. env 가 running 인지 `env("get")`. VM 의 Chrome 에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫).
-2. `menutoy("collect_cmd", product, source)` 가 주는 **한 줄**을 RDP 안 PowerShell 에 붙여 넣어 실행한다. 스크립트는 **로그인된 실제 Edge/Chrome**
-   을 DevTools 포트(9222)로 몰아 URL 마다 탭을 열어 렌더된 DOM 을 뽑아 서버로 보내고(페이지당 1회), 서버가 바로 파싱한다.
-   브라우저가 디버그 포트를 안 열고 있으면 스크립트가 한 번 재시작한다(세션 복원, 로그인 유지) — 리뷰 중 열어둔 탭이 잠깐 닫혔다 돌아온다.
-3. 출력의 `changed`/`summary` 를 캡처(증적)로 남긴다. 전송이 실패하면(egress 차단 등) ⛔ 사유를 적고 멈춘다 — 우회 금지.
+## 1) 수집 — `menutoy("collect", product, source, url=<env 이름>)`
+1. env 가 running 인지 `env("get")`. VM 의 브라우저(Edge)에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫).
+2. `menutoy("collect", product, source, url="claude-exp-close")` 한 번. 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**에서
+   소스에 등록된 URL 마다 탭을 열고 DOM 을 꺼내(클립보드 조각) 저장·파싱한다. 페이지당 정해진 횟수만 조작하고 끝난다 — 결과를 기다리며
+   반복 호출하지 마라. 응답의 `pages[]`(ok·html_bytes·error) 와 `reparse` 를 그대로 보고에 쓴다.
+3. 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다). 한 페이지가 실패하면 그 URL 만 `meta={"urls":[…]}` 로 다시 한 번.
+   (헤드리스 브라우저·PowerShell 스크립트 방식은 이 VM 들에서 안 된다 — 2026-09-16 실측. collect_cmd 는 남겨두었지만 쓰지 않는다.)
 
 ## 2) 파싱 확인 — `menutoy("sources", product)`
 - `parse_errors` 비어 있고 `rows > 0` 이면 정상. `menutoy("get", product)` 로 ADMIN/PLATFORM/WEB 이 실제 화면과 같은지 **RDP 화면과 대조**한다
