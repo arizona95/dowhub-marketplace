@@ -8,7 +8,7 @@ description: |
 allowed-tools: []
 ---
 
-> 🚨 **폴링 금지(절대).** 수집 스크립트는 페이지당 1회 전송하고 끝난다. 결과를 기다리며 반복 조회하지 마라 — `menutoy("sources")` 한 번.
+> 🚨 **폴링 금지(절대).** 수집 잡 상태는 `collect_status`(서버가 80초 대기) 를 **최대 25번(≈30분)** 까지만. 그 밖의 상태 조회는 한 번.
 > 🔄 env 를 켠 직후엔 콘솔을 Ctrl+Shift+R 하고 RDP 에 들어가라.
 
 # MenuToy 갱신 (aar_menutoy)
@@ -22,14 +22,15 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 - toy 가 없으면 만든다: `menutoy("source_set", product, source, meta={kind, urls, title}, parser=<코드>, title=<제품 표시명>)`.
 - 소스별 `parse_errors`·`raw_pages`·`parsed_at` 을 본다. errors 가 있으면 3) 부터.
 
-## 1) 수집 — `menutoy("collect", product, source, url=<env 이름>)`
+## 1) 수집 — 잡으로 시작하고 상태를 받는다
 1. env 가 running 인지 `env("get")`. VM 의 브라우저(Edge)에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫).
-2. `menutoy("collect", product, source, url="claude-exp-close")` 한 번. 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**에서
-   소스에 등록된 URL 마다 탭을 열고 DOM 을 꺼내(클립보드 조각) 저장·파싱한다. 페이지당 정해진 횟수만 조작하고 끝난다 — 결과를 기다리며
-   반복 호출하지 마라. 응답의 `pages[]`(ok·html_bytes·error) 와 `reparse` 를 그대로 보고에 쓴다.
-3. 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다). 서버는 브라우저 창을 앞으로 올린 뒤 **활성 탭 주소창에 URL 을 쳐서** 이동하고, 조각 머리의 URL 이
-   요청한 URL 과 다르면 "활성 탭이 요청한 페이지가 아니다" 로 실패시킨다(다른 페이지의 DOM 을 그 URL 로 저장하지 않는다). 실패한 URL 만 `meta={"urls":[…]}` 로 다시 한 번.
-   (헤드리스 브라우저·PowerShell 스크립트 방식은 이 VM 들에서 안 된다 — 2026-09-16 실측. collect_cmd 는 남겨두었지만 쓰지 않는다.)
+2. `menutoy("collect", product, source, url="claude-exp-close")` → 즉시 `{job, pages, eta_min}`. 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**
+   활성 탭에 URL 을 쳐서 열고 DOM 을 꺼내(클립보드 조각) 저장·파싱한다. 페이지당 1분쯤. (한 요청으로 끝까지 기다리는 방식은 원격 MCP 경로가 100초에 끊어 폐기 — 2026-09-16.)
+3. `menutoy("collect_status", key=<job>, at="80")` — 서버가 80초까지 기다렸다가 답한다. `status` 가 running 이면 다시 부른다.
+   **한도: 최대 25번(≈30분).** 그 안에 done 이 안 오면 ⛔ 사유 보고하고 멈춘다(그 이상은 폴링). done 이면 `result.pages[]`(ok·html_bytes·error) 와 `result.reparse` 를 그대로 보고에 쓴다.
+4. 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다). 서버는 조각 머리의 URL 이 요청한 URL 과 다르면 "활성 탭이 요청한 페이지가 아니다" 로 실패시키고
+   이동을 몇 번 다시 한다(다른 페이지의 DOM 을 그 URL 로 저장하지 않는다). 그래도 실패한 URL 만 `meta={"urls":[…]}` 로 잡을 한 번 더 시작한다.
+   같은 VM 에 잡이 도는 중이면 BUSY(409) — 그 잡의 상태를 받아라.
 
 ## 2) 파싱 확인 — `menutoy("sources", product)`
 - `parse_errors` 비어 있고 `rows > 0` 이면 정상. `menutoy("get", product)` 로 ADMIN/PLATFORM/WEB 이 실제 화면과 같은지 **RDP 화면과 대조**한다
