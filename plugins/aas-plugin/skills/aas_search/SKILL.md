@@ -14,7 +14,7 @@ allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
 
 ## 0) 준비 — 🚨 상태는 서버 저장소(aas-mcp `sensing` 도구)에만 있다
 - 로컬 파일(`~/.aas/`)은 **없다.** 모든 조회·변경은 **aas-mcp** 의 `sensing(action=…)` 도구로 한다(이하 `sensing`). 결과는 서버
-  `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentsensing/** 에서 누구나 읽는다. 어느 PC 에서 돌려도 같은 곳에 쌓인다.
+  `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentautosensing/** 에서 누구나 읽는다. 어느 PC 에서 돌려도 같은 곳에 쌓인다.
   도구가 중복·한도·상태 전이·범위 밖 URL 을 검증한다. 나는 **후보와 사유(본문)만** 낸다.
 - 도구 응답이 `{"ok": false, "error": …}` 면 그 사유를 그대로 보고하고 **그 항목은 멈춘다**. 우회 금지.
 - 시작: `sensing("summary")` · 목표: `sensing("target_list", state="on")` · 범위: `sensing("url_list", state="on")`.
@@ -52,7 +52,7 @@ allowed-tools: [WebFetch, Read, mcp__aas-mcp__sensing]
 - **판정하지 않는다.** 릴리스 노트에 "SOC2 갱신"이라 써 있어도 충족으로 적지 않는다 — "5.2.A 를 다시 보라"까지.
 
 ## 3) 요청서 = 랭킹 세션 — 하루 최대 6개, 하나당 5~20줄, 표 없음
-요청서 하나가 웹(https://dowmain.org/agentsensing/ › 랭킹)의 **세션 하나**로 쌓인다. 🚨 변화 5건은 **최근 30일 안에 바뀐 센싱 카드(변화 날짜 기준)이고 On 인 에이전트**에서만, 신규 1건은 **리뷰 안 된 에이전트 중 랭킹 1위**(최근 30일 발견)에서만 뽑는다 — 아니면 도구가 거부한다. 카드의 리뷰 On/Off 는 aar 가 리뷰를 끝내고 `review_done` 을 부를 때 켜진다(이 스킬은 건드리지 않는다).
+요청서 하나가 웹(https://dowmain.org/agentautosensing/ › 랭킹)의 **세션 하나**로 쌓인다. 🚨 변화 5건은 **최근 30일 안에 바뀐 센싱 카드(변화 날짜 기준)이고 On 인 에이전트**에서만, 신규 1건은 **리뷰 안 된 에이전트 중 랭킹 1위**(최근 30일 발견)에서만 뽑는다 — 아니면 도구가 거부한다. 카드의 리뷰 On/Off 는 aar 가 리뷰를 끝내고 `review_done` 을 부를 때 켜진다(이 스킬은 건드리지 않는다).
 AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 만들지 마라.** 요청서는 **pending 큐를 소비**하는 단계다:
 - **신규 SaaS 1개** (타입 A) — `sensing("ranking_candidate")` 가 주는 **리뷰 안 된(new) 에이전트 중 랭킹 1위** 하나(스코프 On/Off 와 무관 —
   On/Off 는 변화관리에만 쓴다). 다른 걸 올리면 도구가 거부한다. 도구가 요청서 생성 때 그 목표를 **`review_requested` + `request_id`** 로 바꾼다 (R17).
@@ -74,13 +74,13 @@ AAR 에게: <어느 시나리오로 무엇을 실측하라, 1~3줄>
 발행: 항목마다 위 꼴의 본문을 만들어 `sensing("request_create", date="YYYY-MM-DD", changes=[{"change_id":…, "body_md":…}, …], new_target={"slug":…, "body_md":…} 또는 None)` 을
 **한 번** 부른다. 도구가 **한 트랜잭션**으로 요청서 저장 → 행 상태 변경 → 목표 전이를 하고 `request_id` 를 준다. 같은 날 같은 항목이면
 **같은 request_id**(멱등 — 재실행·응답 유실 뒤 재시도해도 중복 발행 없음). 이미 `requested` 인 행, 5~20줄 밖 본문, 표가 든 본문은 거부된다.
-발행된 요청서는 https://dowmain.org/agentsensing/ 의 "요청서" 탭에 바로 보인다(파일로 따로 쓰지 않는다).
+발행된 요청서는 https://dowmain.org/agentautosensing/ 의 "요청서" 탭에 바로 보인다(파일로 따로 쓰지 않는다).
 
 ## 4) 마무리
 - 변화가 없었으면 `sensing("log", skill="aas_search", op="nochange")`. (request 로그는 도구가 남긴다. 워터마크는 §1 에서 이미 올렸다.)
 - 출력은 짧게:
 ```
-[aas_search YYYY-MM-DD]  목표 N개 · URL M개 읽음 → 요청 6 (신규 1 · 업데이트 5) → request_id YYYY-MM-DD-n · https://dowmain.org/agentsensing/
+[aas_search YYYY-MM-DD]  목표 N개 · URL M개 읽음 → 요청 6 (신규 1 · 업데이트 5) → request_id YYYY-MM-DD-n · https://dowmain.org/agentautosensing/
 ```
 **전부 변화 없음이면 한 줄로 끝낸다.**
 

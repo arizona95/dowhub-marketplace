@@ -15,7 +15,7 @@ allowed-tools: [WebFetch, WebSearch, Read, mcp__aas-mcp__sensing]
 
 ## 0) 상태 — 🚨 서버 저장소(aas-mcp `sensing` 도구)에만 있다
 로컬 파일은 없다. 모든 조회·변경은 **aas-mcp** 의 `sensing(action=…)` 도구로 한다(이하 `sensing`). 어느 PC 에서 돌려도 서버
-`runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentsensing/** 에서 읽힌다. 도구가 URL 형식·중복·상태 전이를 검증한다.
+`runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentautosensing/** 에서 읽힌다. 도구가 URL 형식·중복·상태 전이를 검증한다.
 `{"ok":false}` 가 오면 사유를 보고하고 그 항목은 멈춘다.
 `sensing("target_add", slug=S, name=N, reason="…")` · `sensing("url_add", slug=S|"_ranking", url=U, kind=K, reason="…")` ·
 `sensing("url_health", url=U, status="healthy|redirected|transient_error|gone", new_url=U2)` · `sensing("target_set", slug=S, status="dropped")` ·
