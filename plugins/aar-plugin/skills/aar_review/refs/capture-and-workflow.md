@@ -35,5 +35,5 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
 1. 환경 확인/생성 → `env("get", name)` 의 `state` 가 **running** 이 될 때까지 대기(생성·기동은 수 분)
 2. 대상 확정 → 적용 시나리오는 `coverage_ledger` 가 계산해준다(스코프 계약)
 3. `scenario_start(env, id)` → 라이브 수행 → 캡처 POST
-4. 리포트: S0/S1/S2 = `html_report`, S3 = 문서스킬로 조판 → `upload_report_file`(서버가 골격 검사)
+4. 리포트: S0/S1/S2 = `html_report`, S3 = 문서스킬로 조판 → `upload_report_file`(content_b64 없이 → curl 업로드, 서버가 골격 검사)
 5. 확인: `report("list", session, env)` 의 실데이터로 보고(추측 금지)

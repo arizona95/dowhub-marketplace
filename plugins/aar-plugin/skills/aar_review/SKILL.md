@@ -18,7 +18,7 @@ allowed-tools:
 > 불가피하면 **총 30분 제한, 간격은 분 단위**, 30분 안에 안 되면 ⛔ 사유 보고. 작업이 끝나면 **탭·브라우저·프로세스를 닫는다**(열어둔 화면 = 폴링).
 > 🔄 **env 를 켜거나 끈 뒤(start/stop/create 완료 후)에는 콘솔을 Ctrl+Shift+R(강력 새로고침) 하고 접속하라.** 옛 연결을 물고 있으면 RDP·화면이 안 뜨는데, 그걸 env 고장으로 오판해 재시도(폴링)하지 마라.
 > 🧸 **MenuToy 갱신은 리뷰 중에 바로.** 시나리오를 만들거나 리포트를 낼 때 그 시나리오가 다룬 항목을 aar-mcp `menutoy` 로 갱신한다 —
-> `checklist_set`(판정·근거) · `popup_set`(메뉴 팝업 권고·위험·연결) · `web_add`(문서 근거) · 새 제품이면 `toy_create`. 판정은 근거가 리포트에 있을 때만.
+> `checklist_set`(판정·근거) · `popup_set`(메뉴 팝업 권고·위험·연결) · `web_add`(문서 근거) · 새 제품이면 `toy_create`(세션 제품명과 toy 이름이 달라도 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 그 toy 를 갱신; 어느 toy 에도 없을 때만 새로). 판정은 근거가 리포트에 있을 때만.
 
 # 전수 시나리오 리뷰 (review-scenario)
 
@@ -46,7 +46,7 @@ allowed-tools:
 1. 계획 단계에 `list_scenarios(include_instructions=True)` **한 번**으로 전체 instruction 을 받아 criterion(점검기준) 확인(N콜 낭비 금지).
 2. `scenario_start(env, id)` — env 실증(S1~) 시작시각 기록. S0 문서 리서치는 scenario_start 없이 claude-for-chrome 로 바로.
 3. 내 브라우저로 라이브 수행 → **내가 본 화면을 떠서 `/api/v1/evidence` 로 POST**(`refs/capture-and-workflow.md` 레시피대로). 값은 `get_page_text`. 🚨 과거 보고서·다른 세션 캡처 베끼기 금지 — 이번에 본 화면만.
-4. 보고서 생성 — **S0/S1/S2 는 `html_report(session, id, ...)`**(근거=POST 한 shot label 로 조립, `quality_ok` 통과해야 ✅). **S3 종합(S3-1·S3-2)은 문서 스킬대로 네가 docx 를 조판**한다 — 뼈대는 `skill("get", "aar_review/report-skills/S3-1")` 로 **원문 그대로** 받아 따르고(기억으로 재현 금지), 만든 뒤 `upload_report_file(session, scenario, "report.docx", <base64>)` 로 올린다. 🚨 업로드 때 서버가 골격(별첨 5종·이미지·종결표기·분량)을 검사해 **미달본은 올리지 않는다** — 축약본 금지. 구성도는 `report-skills/section2-arch-diagram` 으로 만들어 `upload_report_file(session, scenario, "img/<이름>.png", <base64>)` 로 올린다.
+4. 보고서 생성 — **S0/S1/S2 는 `html_report(session, id, ...)`**(근거=POST 한 shot label 로 조립, `quality_ok` 통과해야 ✅). **S3 종합(S3-1·S3-2)은 문서 스킬대로 네가 docx 를 조판**한다 — 뼈대는 `skill("get", "aar_review/report-skills/S3-1")` 로 **원문 그대로** 받아 따르고(기억으로 재현 금지), 만든 뒤 **`upload_report_file(session, scenario, "report.docx")` 를 content_b64 없이 불러** 1회용 토큰·`curl` 명령을 받고, 그 명령을 Bash 로 실행해 파일을 직접 올린다(docx 는 MB 단위라 base64 를 도구 인자로 넣을 수 없다 — 2026-09-16 정식본 미업로드 사고). 응답의 `quality_ok`·`checks` 를 확인한다. 🚨 업로드 때 서버가 골격(별첨 5종·이미지·종결표기·분량)을 검사해 **미달본은 올리지 않는다** — 축약본 금지. 구성도는 `report-skills/section2-arch-diagram` 으로 만들어 `upload_report_file(session, scenario, "img/<이름>.png", <base64>)` 로 올린다(작은 png 만 base64 인자, 크면 같은 curl 방식).
 5. 순서: **S0(문서) → S1(env 실증) → S2/C(비교) → S3(종합, 맨 마지막 — S3-1·S3-2 둘 다)**. S3 는 그 세션 S0/S1/S2 가 다 있어야 성립.
 
 ## ⛔ (막힘) 은 외부 사유가 있을 때만
@@ -66,5 +66,5 @@ allowed-tools:
 
 ## 절대 규칙 (전부 MCP 로만 — 로컬 파일·localhost·스크립트 없음)
 - **off-screen 금지.** 모든 캡처는 **내가 본 화면**을 떠서 `/api/v1/evidence` 로 POST. 서버 대리캡처·Xvfb·playwright 금지.
-- **S0/S1/S2** 보고서는 `html_report`(MCP)가 서버 세션에 쓴다(로컬 폴더 생성·읽기 금지). **S3** 는 문서 스킬대로 조판한 docx 를 `upload_report_file` 로 올린다(서버가 골격 검사). 과거 프리빌트 마스터 재사용 금지, 이번 세션 라이브 캡처만.
+- **S0/S1/S2** 보고서는 `html_report`(MCP)가 서버 세션에 쓴다(로컬 폴더 생성·읽기 금지). **S3** 는 문서 스킬대로 조판한 docx 를 `upload_report_file`(content_b64 없이 → curl) 로 올린다(서버가 골격 검사). 과거 프리빌트 마스터 재사용 금지, 이번 세션 라이브 캡처만.
 - 커버리지·완료 판정은 오직 `coverage_ledger`(MCP)로. 로컬에서 registry·세션폴더를 직접 읽으려 하지 마라(플러그인 PC 엔 없다).
