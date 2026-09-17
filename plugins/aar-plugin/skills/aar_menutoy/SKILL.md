@@ -19,6 +19,7 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 🚨 데이터는 **크롤러가 만든 것만** 쓴다. 예시 화면(menutoy.html)의 값을 옮겨 적는 것은 날조다.
 
 ## 0) 현황 — `menutoy("toys")` → `menutoy("sources", product)`
+- toy 는 **SaaS 하나에 하나**, 표면(관리자 콘솔·플랫폼 콘솔·문서)은 그 아래 소스. 세션 제품명과 toy 이름이 달라도 `toys` 의 `sources[].hosts` 로 같은 SaaS 를 찾아 그 toy 를 쓴다(예: platform.claude.com 세션 → `claude-app`/`claude-platform`). 어느 toy 에도 그 호스트가 없을 때만 새로 만든다.
 - toy 가 없으면 만든다: `menutoy("source_set", product, source, meta={kind, urls, title}, parser=<코드>, title=<제품 표시명>)`.
 - 소스별 `parse_errors`·`raw_pages`·`parsed_at` 을 본다. errors 가 있으면 3) 부터.
 

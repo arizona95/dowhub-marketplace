@@ -251,7 +251,7 @@ docx 조판 도구·절차(python-docx/docx-js 스크립트)는 **`report-skills
 - **별첨2 는 별첨1 과 1:1** — 별첨1 의 각 행이 별첨2 에서 인용·URL·캡처로 뒷받침돼야 한다.
 - 구성도·증적은 **이번 세션에서 실제로 뜬 캡처**를 넣는다. 과거 보고서 재사용 금지.
 
-**만든 docx 는 반드시 `upload_report_file(session, scenario, "report.docx", <base64>)` 로 세션에 올린다.**
+**만든 docx 는 반드시 세션에 올린다: `upload_report_file(session, scenario, "report.docx")` 를 content_b64 없이 불러 받은 `curl` 명령을 Bash 로 실행(파일 경로만 바꿔서). base64 를 인자로 넣지 마라(MB 단위는 안 들어간다).**
 플러그인은 클라이언트 PC 에서 돌아 서버 세션 폴더에 직접 못 쓴다 — 안 올리면 사용자 손에만 남고 콘솔엔
 html 만 남아 **"docx 없는 S3"** 가 된다(실사고 2회). 사용자에게 파일을 첨부해 보내는 것은 업로드를
 **대신하지 못한다** — 둘 다 해라. 🚫 요약본·축약본을 따로 만들어 올리지 마라(정식본 하나만).
