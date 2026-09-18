@@ -21,6 +21,7 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 ## 0) 현황 — `menutoy("toys")` → `menutoy("sources", product)`
 - toy 는 **SaaS 하나에 하나**, 표면(관리자 콘솔·플랫폼 콘솔·문서)은 그 아래 소스. 세션 제품명과 toy 이름이 달라도 `toys` 의 `sources[].hosts` 로 같은 SaaS 를 찾아 그 toy 를 쓴다(예: platform.claude.com 세션 → `claude-app`/`claude-platform`). 어느 toy 에도 그 호스트가 없을 때만 새로 만든다.
 - toy 가 없으면 만든다: `menutoy("source_set", product, source, meta={kind, urls, title}, parser=<코드>, title=<제품 표시명>)`.
+- 제품(toy)을 없애려면 `menutoy("toy_delete", product)` — 사용자가 명시적으로 지시했을 때만. toys 목록·트리에서 사라지고 수집·판정·보고서 이력은 DB 에 남는다. 되돌리기 없음(같은 이름으로 다시 만들면 새 제품).
 - 소스별 `parse_errors`·`raw_pages`·`parsed_at` 을 본다. errors 가 있으면 3) 부터.
 
 ## 1) 수집 — 잡으로 시작하고 상태를 받는다
