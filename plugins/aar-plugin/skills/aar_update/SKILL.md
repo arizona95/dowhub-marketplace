@@ -28,6 +28,12 @@ allowed-tools:
 - 전수 재실행이 필요할 만큼 크게 바뀌었으면 → **aar_review 로 넘겨라**(이 스킬은 증분 추적).
 
 ## 절차
+0. **갱신 대상 찾기(여기서 시작)** — `update_targets("list", product)`. 컨텐츠에 달린 `update` 속성(주기·방법)이 진실이다:
+   due 인 것만 처리하고, 없는 것을 새로 만들지 마라. how 별로 —
+   · `tree` = 그 제품 루트 아래를 화면으로 재검토해 **바뀐 것만** `update_tree`(아래 1~4)
+   · `collect` = `menutoy("collect", product, source, url=<env>)` 잡 → `collect_status` → 파싱 오류면 파서 수정·`reparse`(2-1)
+   · `web` = 그 문서 URL 을 다시 열어 바뀌었으면 `web_add`(같은 url 이면 갱신 rev)
+   목록에 없는 새 컨텐츠를 추적하고 싶으면 `update_targets("set", ref, period)`(제품 전체는 `set_product`) — 사용자가 시킨 때만.
 1. **기준선 읽기** — 4트리 각각 `tree("get", tree_id)` (menu·session·settings·retention). "지난번엔 뭐가 있었나".
 2. **제품 재관찰** — 내 브라우저로 제품을 훑어 **바뀐 지점**을 찾는다(새 메뉴·사라진 항목·값 변경·새 세션형태·세팅 기본값 변경·보존정책 변경).
 2-1. **MenuToy 수집(env 를 켠 김에)** — 제품마다 `/aar_menutoy` 의 1)~4) 를 그대로: `menutoy("collect", product, source, url=<env>)` 로 소스별 웹 메뉴를 다시 긁고
@@ -37,6 +43,7 @@ allowed-tools:
 4. **무엇이 바뀌었나 기록** — `tree("changelog", tree_id, since=지난추적일)` 로 이번 델타를 시간축으로 확인(added/−removed/~changed).
 5. **영향 보고서 갱신** — 그 변화가 통제/동작에 영향 있으면(예: 새 egress 경로, 새 관리자 토글, 보존기간 변경) **해당 시나리오만** 재실증(`scenario_start`→라이브 캡처→`html_report`) + 그 노드에 `tag` 로 보고서 재연결. 변화 없는 시나리오는 건드리지 마라.
 6. **추적 로그 남기기** — 이번에 무엇이 바뀌어 무엇을 갱신했는지 `memory_note(kind='note')`. 다음 추적이 이어받는다.
+   끝에 `update_targets("list", product)` 를 다시 불러 due 가 남아 있으면 그 사유를 보고한다(마지막 갱신 시각은 자료에서 읽히므로 따로 적지 않는다).
 
 ## 무엇을 추적하나 (4트리 = 4관점)
 - **menu** — 제품 UI 메뉴가 추가/삭제/개편됐나.
