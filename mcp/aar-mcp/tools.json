@@ -23,6 +23,7 @@
     "sensing_ranking",
     "sensing_review_done",
     "sensing_review_undo",
+    "shot_set",
     "skill",
     "tree",
     "update_targets",
