@@ -18,9 +18,9 @@ allowed-tools: [WebFetch, WebSearch, Read, mcp__aas-mcp__sensing]
 `runs/aas.sqlite` 한 곳에 쌓이고 **https://dowmain.org/agentautosensing/** 에서 읽힌다. 도구가 URL 형식·중복·상태 전이를 검증한다.
 `{"ok":false}` 가 오면 사유를 보고하고 그 항목은 멈춘다.
 `sensing("target_add", slug=S, name=N, reason="…")` · `sensing("url_add", slug=S|"_ranking", url=U, kind=K, reason="…")` ·
-`sensing("url_health", url=U, status="healthy|redirected|transient_error|gone", new_url=U2)` · `sensing("target_set", slug=S, status="dropped")` ·
+`sensing("url_health", url=U, status="healthy|redirected|transient_error|gone", new_url=U2, state="replace"(기본: 옛 URL 을 새 URL 로 교체)|"candidate"(상한 안에서 후보 추가))` · `sensing("target_set", slug=S, status="dropped")` ·
 `sensing("log", skill="aas_scope", op="skip", slug=S, reason="…")`.
-에이전트 On/Off(변화관리 대상 여부)·삭제는 **사람이** 웹(스코프 › 에이전트 버튼) 또는 `target_toggle`/`target_remove` 로 한다 — 이 스킬은 새 목표를 넣기만 하고(기본 On) 끄거나 지우지 않는다.
+에이전트 On/Off(변화관리 대상 여부)·삭제는 **사람이** 웹(스코프 › 에이전트 버튼) 또는 `target_toggle`/`target_remove` 로 한다 — 이 스킬은 새 목표를 넣기만 하고(**기본 Off** — 사람이 On 으로 켠다) 끄거나 지우지 않는다.
 
 저장 항목 모양(참고용 — 도구가 관리한다)
 ```
@@ -90,6 +90,6 @@ Off 인 에이전트는 지도도 손대지 않는다(페이지를 열지 않는
 
 ## 절대 규칙
 - **URL 을 지어내지 마라.** 열어서 확인한 것만 넣는다.
-- **목표·범위를 지우는 건 사람이 확인한 뒤** — 이 스킬은 `dropped`/`pending_removal` 표시까지만(도구에도 삭제 action 이 없다).
+- **목표·범위를 지우는 건 사람이 확인한 뒤** — 이 스킬은 `dropped`/`pending_removal` 표시까지만. (`target_remove`/`url_remove` 액션은 도구에 있지만 **사람이 웹에서 확인한 뒤** 쓰는 것이지 이 스킬이 부르지 않는다.)
 - 상태를 파일로 쓰지 않는다. `sensing` 이 거부한 것을 우회하지 않는다.
 - 제품 고유값을 스킬 본문에 박지 마라. 어느 SaaS 든 같은 절차다.

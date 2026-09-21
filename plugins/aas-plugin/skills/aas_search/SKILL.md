@@ -57,7 +57,7 @@ AAR 이 받아서 바로 움직일 수 있는 크기로 자른다. **긴 표를 
 - **신규 SaaS 1개** (타입 A) — `sensing("ranking_candidate")` 가 주는 **리뷰 안 된(new) 에이전트 중 랭킹 1위** 하나(스코프 On/Off 와 무관 —
   On/Off 는 변화관리에만 쓴다). 다른 걸 올리면 도구가 거부한다. 도구가 요청서 생성 때 그 목표를 **`review_requested` + `request_id`** 로 바꾼다 (R17).
   `review_requested`/`reviewing`/`active` 인 목표는 후보가 아니다.
-  AAR 리뷰 세션이 생기면 `sensing("target_set", slug=S, status="reviewing", session=<세션>)` → 끝나면 `active`.
+  AAR 리뷰가 시작되면 `sensing("target_set", slug=S, status="reviewing")` 까지만. **`active` 는 이 도구로 못 만든다** — aar-mcp `sensing_review_done` 이 validated 리포트와 세션 소속(세션의 product)을 검사한 뒤에만 켠다. session 인자는 없다(소속 증명이 아니다).
 - **업데이트 5개** (타입 B) — `sensing("pending", state="selected")` 중 **가장 중요한 5건**. 6건 이상 넣으면 도구가 거부한다.
   요청서에 들어간 행은 도구가 `requested` + `request_id` 로 바꾼다. **안 뽑힌 selected 행은 그대로 남아 다음 날 후보가 된다.**
 - 6개가 안 차면 있는 만큼만. 억지로 채우지 마라. **변화 없으면 0개** (`request_create` 를 부르지 않는다).
