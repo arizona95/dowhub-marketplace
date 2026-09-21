@@ -32,7 +32,9 @@ allowed-tools:
    due 인 것만 처리하고, 없는 것을 새로 만들지 마라. how 별로 —
    · `tree` = 그 제품 루트 아래를 화면으로 재검토해 **바뀐 것만** `update_tree`(아래 1~4)
    · `collect` = `menutoy("collect", product, source, url=<env>)` 잡 → `collect_status` → 파싱 오류면 파서 수정·`reparse`(2-1)
-   · `web` = 그 문서 URL 을 다시 열어 바뀌었으면 `web_add`(같은 url 이면 갱신 rev)
+   · `web` = 그 문서 URL 을 실제로 열고 `menutoy("web_check", product, url=…, html=<연 본문>)` 로 **확인 사실**을 남긴다(같음이어도 남긴다 — 그래야 갱신 완료).
+     내용이 바뀌었으면 이어서 `web_add` 로 카드 설명을 고친다. 못 열었으면 html 없이 불러 unreachable 로 남긴다(완료 아님).
+   갱신 완료로 세는 것 = **succeeded 로 끝난 수집**(collect_status 의 status) · **web_check same|changed** · 트리 커밋. 시작만 한 수집·partial·failed 는 완료가 아니다.
    목록에 없는 새 컨텐츠를 추적하고 싶으면 `update_targets("set", ref, period)`(제품 전체는 `set_product`) — 사용자가 시킨 때만.
 1. **기준선 읽기** — 4트리 각각 `tree("get", tree_id)` (menu·session·settings·retention). "지난번엔 뭐가 있었나".
 2. **제품 재관찰** — 내 브라우저로 제품을 훑어 **바뀐 지점**을 찾는다(새 메뉴·사라진 항목·값 변경·새 세션형태·세팅 기본값 변경·보존정책 변경).
