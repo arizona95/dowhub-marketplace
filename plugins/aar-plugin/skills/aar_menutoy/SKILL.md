@@ -9,6 +9,7 @@ allowed-tools: []
 ---
 
 > 🚨 **폴링 금지(절대).** 수집 잡 상태는 `collect_status`(서버가 80초 대기) 를 **최대 25번(≈30분)** 까지만. 그 밖의 상태 조회는 한 번.
+> 🧭 **env 는 제품으로 찾는다** — 사용자가 제품만 말하면(예: "Claude Desktop app 에서 ~") `env("for_product", name=<제품>)` 로 그 제품에 연결된 env 들을 받는다. 하나면 그것, 여럿이면 요청 문맥(프록시 강제 exp-close / 직접 egress exp-open 등)으로 고르고 모호하면 후보를 보여주고 묻는다. `exists:false` 는 없어진 env 라 쓰지 않는다. stopped 면 `env("start", name)`. 연결된 env 가 없으면 이름으로 추정하지 말고 `env("list")` 를 보여주고 묻는다 — 새로 만들지 않는다.
 > 🔄 env 를 켠 직후엔 콘솔을 Ctrl+Shift+R 하고 RDP 에 들어가라.
 
 # MenuToy 갱신 (aar_menutoy)
