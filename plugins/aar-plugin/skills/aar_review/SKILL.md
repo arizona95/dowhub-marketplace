@@ -17,6 +17,7 @@ allowed-tools:
 > env 가 "활동 중"으로 잡혀 자동 정지가 안 걸리고 하루 종일 과금된 실사고(2026-09-15). 기다림은 **한 번 조회 → 아직이면 적고 넘어감**.
 > 불가피하면 **총 30분 제한, 간격은 분 단위**, 30분 안에 안 되면 ⛔ 사유 보고. 작업이 끝나면 **탭·브라우저·프로세스를 닫는다**(열어둔 화면 = 폴링).
 > 🧭 **env 는 제품으로 찾는다** — 사용자가 제품만 말하면(예: "Claude Desktop app 에서 ~") `env("for_product", name=<제품>)` 로 그 제품에 연결된 env 들을 받는다. 하나면 그것, 여럿이면 요청 문맥(프록시 강제 exp-close / 직접 egress exp-open 등)으로 고르고 모호하면 후보를 보여주고 묻는다. `exists:false` 는 없어진 env 라 쓰지 않는다. stopped 면 `env("start", name)`. 연결된 env 가 없으면 이름으로 추정하지 말고 `env("list")` 를 보여주고 묻는다 — 새로 만들지 않는다.
+> 🔁 **다시 리뷰할 때** — `report("lines", product=<제품>)` 로 그 제품의 보고서 줄을 먼저 본다. **kind=update(업데이트 문서)** 인 줄은 빠짐없이 같은 시나리오·같은 env 로 `html_report` 를 새로 내 새 버전을 만든다(이전 버전과의 diff 가 화면에 자동으로 남는다). kind=general(일반 문서)은 바뀐 게 있을 때만. 구분을 바꾸는 건 사용자가 시킨 때만(`report("kind", …)`).
 > 🔄 **env 를 켜거나 끈 뒤(start/stop/create 완료 후)에는 콘솔을 Ctrl+Shift+R(강력 새로고침) 하고 접속하라.** 옛 연결을 물고 있으면 RDP·화면이 안 뜨는데, 그걸 env 고장으로 오판해 재시도(폴링)하지 마라.
 > 🧸 **MenuToy 갱신은 리뷰 중에 바로.** 시나리오를 만들거나 리포트를 낼 때 그 시나리오가 다룬 항목을 aar-mcp `menutoy` 로 갱신한다 —
 > `checklist_set`(판정·근거) · `popup_set`(메뉴 팝업 권고·위험·연결) · `web_add`(문서 근거) · 새 제품이면 `toy_create`(세션 제품명과 toy 이름이 달라도 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 그 toy 를 갱신; 어느 toy 에도 없을 때만 새로). 판정은 근거가 리포트에 있을 때만.
