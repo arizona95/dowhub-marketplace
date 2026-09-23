@@ -210,25 +210,34 @@ def grab(folder, times):
 
 # ───────────────────────── HTML rendering ─────────────────────────
 CSS = """
-:root{--bg:#e8f1fb;--card:#ffffff;--ink:#1f2a37;--mut:#5b6b7f;--ok:#16a34a;--bad:#dc2626;--blue:#2563eb}
+:root{--bg:#eef3f9;--card:#ffffff;--ink:#1c2533;--body:#2b3647;--mut:#66758a;--line:#dbe4ef;--ok:#16a34a;--bad:#dc2626;--blue:#2563eb;--navy:#0f3a6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
- font:15px/1.6 -apple-system,Segoe UI,Roboto,'Noto Sans KR',sans-serif}
+ font:16px/1.75 -apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Roboto,sans-serif;
+ word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto}  /* 전역 방어 — 큰 캡처(공식문서 등)가 컨테이너를 절대 못 넘게 */
-.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
-h1{font-size:24px;margin:0 0 4px;color:#0f3a6b}.meta{color:var(--mut);font-size:13px;margin-bottom:28px}
-h2{font-size:18px;margin:40px 0 14px;border-left:4px solid var(--blue);padding-left:10px;color:#13294b}
+code{font:.88em 'SFMono-Regular',Consolas,'Liberation Mono',monospace;background:#eef2f7;border-radius:4px;padding:1px 5px}
+/* 가독성(2026-09-23): 사진은 넓게, 글은 한 줄 50자 안팎으로 — 글 폭을 카드 안에서 제한한다 */
+.wrap{max-width:1000px;margin:0 auto;padding:40px 28px 96px}
+h1{font-size:27px;line-height:1.38;margin:0 0 8px;color:var(--navy);letter-spacing:-.01em;text-wrap:balance}
+h1 .rid{display:block;font:600 12.5px/1.4 'SFMono-Regular',Consolas,monospace;color:var(--mut);letter-spacing:.02em;margin-bottom:6px}
+h1 .rid .stg,h1 .sep{display:none}
+.meta{color:var(--mut);font-size:13px;margin-bottom:30px}
+h2{font-size:21px;line-height:1.4;margin:56px 0 16px;border-left:4px solid var(--blue);padding-left:12px;color:#13294b;text-wrap:balance}
 /* 메뉴 태그 섹션: 어디부터 어디까지가 그 메뉴 태그인지 눈에 보이게(경계+배지), 앵커로 오면 하이라이트 */
-.menuanchor{position:relative;border:1px solid #bcd7f5;border-left:4px solid var(--blue);
- background:#f2f8ff;border-radius:8px;padding:10px 14px 6px;margin:16px 0}
+.menuanchor{position:relative;border:1px solid #cfe0f5;border-left:4px solid var(--blue);
+ background:#f5f9ff;border-radius:12px;padding:12px 14px 10px;margin:26px 0}
 .menuanchor-tags{display:flex;flex-wrap:wrap;gap:4px 6px;margin-bottom:8px}
 .menuanchor-tag{display:inline-block;font-size:12px;font-weight:600;color:var(--blue);background:#e3eefc;
  border-radius:999px;padding:1px 9px;scroll-margin-top:14px}
 .menuanchor-tag:target{background:#f59e0b;color:#fff}
 .menuanchor:target,.menuanchor:has(.menuanchor-tag:target){border-color:#f59e0b;border-left-color:#f59e0b;animation:mflash 1.6s ease-out}
 @keyframes mflash{0%{background:#fff2cc;box-shadow:0 0 0 3px #f59e0b}100%{background:#f2f8ff;box-shadow:none}}
-.sum p{margin:0 0 11px;line-height:1.75}.sum p:last-child{margin-bottom:0}
-.sum{background:var(--card);border-radius:10px;padding:14px 18px;color:#334155;
- box-shadow:0 1px 4px rgba(30,58,95,.10)}
+.sum p{margin:0 0 16px;line-height:1.85;max-width:46em}.sum p:last-child{margin-bottom:0}
+.sum{background:var(--card);border-radius:12px;padding:20px 26px;color:var(--body);font-size:16px;
+ box-shadow:0 1px 3px rgba(30,58,95,.08);border:1px solid var(--line);margin:14px 0}
+.sum b.lead{display:block;color:var(--navy);font-size:15.5px;margin-bottom:2px}
+/* 보고서 맨 위 요약 = 결론 카드 */
+.meta + .sum{border-left:5px solid var(--navy);padding:24px 30px;font-size:16.5px}
 video.rec{width:100%;display:block;border-radius:10px;margin:16px 0 0;background:#000;
  box-shadow:0 1px 4px rgba(30,58,95,.18)}
 .inv{display:flex;flex-direction:column;gap:14px}
@@ -240,13 +249,13 @@ video.rec{width:100%;display:block;border-radius:10px;margin:16px 0 0;background
 .inv .think .badge{background:#e2e8f0;color:#334155}
 .inv .test .badge{background:#dcfce7;color:#166534}
 .inv img{width:100%;display:block;margin-top:8px}
-.inv .body{padding:10px 14px 14px;font-size:14px;color:#334155}
+.inv .body{padding:14px 20px 18px;font-size:15.5px;line-height:1.8;color:var(--body)}
 .inv .ref{font-size:12.5px;color:#92400e;margin-top:6px}
-.inv .quote{margin:8px 0 0;padding:8px 12px;background:#fffbeb;border-left:3px solid #f59e0b;
- font-style:italic;color:#78350f;font-size:13.5px;border-radius:0 6px 6px 0}
-.inv .res{font-size:12.5px;color:#166534;margin-top:6px;font-weight:600}
+.inv .quote{margin:10px 0 0;padding:10px 14px;background:#fffbeb;border-left:3px solid #f59e0b;
+ font-style:italic;color:#78350f;font-size:14.5px;line-height:1.7;border-radius:0 8px 8px 0}
+.inv .res{font-size:14px;color:#166534;margin-top:10px;font-weight:600}
 .inv .src{font:11.5px monospace;color:var(--mut);word-break:break-all;margin-top:6px}
-.srcurl{font-size:11.5px;margin-top:6px;color:var(--mut)}
+.srcurl{font-size:12px;margin-top:8px;color:var(--mut);line-height:1.5}
 .srcurl a{color:#2563eb;word-break:break-all;text-decoration:none}
 .srcurl a:hover{text-decoration:underline}
 .invintro{background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;
@@ -258,14 +267,15 @@ video.rec{width:100%;display:block;border-radius:10px;margin:16px 0 0;background
 .ba .tag{padding:8px 12px;font-weight:700;font-size:13px}
 .ba .before .tag{background:#dcfce7;color:#166534}.ba .after .tag{background:#fee2e2;color:#991b1b}
 .ba img,.tl img{width:100%;display:block}
-.ba .cap{padding:10px 12px;font-size:13px;color:#334155}
+.ba .cap{padding:12px 16px 14px;font-size:15px;line-height:1.75;color:var(--body)}
 .changed{margin:12px 0 0;background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;
  padding:10px 14px;font-size:14px;color:#1e3a8a}
-.tl{display:flex;flex-direction:column;gap:18px}
-.tl .row{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(30,58,95,.10)}
+.tl{display:flex;flex-direction:column;gap:18px;margin:14px 0}
+.tl .row{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(30,58,95,.08);border:1px solid var(--line)}
+.tl .row>img{border-bottom:1px solid var(--line)}
 .tl .t{display:inline-block;background:#dbeafe;color:#1e40af;font-weight:700;
  font-size:12px;padding:3px 9px;border-radius:6px;margin:10px 0 0 12px}
-.tl .what{padding:8px 14px 14px;font-size:14px;color:#334155}
+.tl .what{padding:16px 24px 18px;font-size:15.5px;line-height:1.8;color:var(--body);background:#fbfcfe}
 ul.why{padding-left:0;list-style:none}ul.why li{background:var(--card);border-radius:8px;
  padding:10px 14px;margin:8px 0;border-left:3px solid var(--ok);box-shadow:0 1px 4px rgba(30,58,95,.08)}
 ul.fail li{border-left-color:var(--bad)}
@@ -284,8 +294,9 @@ pre.term .p{color:#7dd3fc}
 .dl{margin:16px 0 4px}.dl a{display:inline-block;background:var(--card);border:1px solid #c3d4e6;border-radius:8px;
  padding:9px 16px;color:#1e3a5f;font-weight:700;text-decoration:none}.dl a:hover{background:#eef4fb}
 .dlsz{color:var(--mut);font-size:12px;margin-left:8px}
-table.rt{width:100%;border-collapse:collapse;margin:8px 0 18px;font-size:13px;display:block;overflow-x:auto;border:2px solid #475569}
-table.rt th,table.rt td{border:1px solid #64748b;padding:6px 10px;text-align:left;vertical-align:top;white-space:nowrap}
+table.rt{width:100%;border-collapse:collapse;margin:10px 0 22px;font-size:14px;display:block;overflow-x:auto;border:1px solid #64748b;background:var(--card);border-radius:8px}
+table.rt th,table.rt td{border:1px solid #94a3b8;padding:8px 12px;text-align:left;vertical-align:top;white-space:normal;min-width:7em;line-height:1.6}
+table.rt td:first-child,table.rt th:first-child{white-space:nowrap}
 table.rt th{background:#e2e8f0;color:#1e293b;font-weight:700;position:sticky;top:0;border-bottom:2px solid #475569}
 table.rt tbody tr:nth-child(even){background:#f1f5f9}
 table.rt td:first-child{font-family:monospace}
@@ -327,6 +338,8 @@ def _rich(text):
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
     s = re.sub(r"\s+(?=(?:<b>)?[\u2460-\u2473])", "\n\n", s)   # ①~⑳ 앞에서 문단 분리
     parts = [x.strip() for x in re.split(r"\n\s*\n", s) if x.strip()]
+    # 문단이 【…】 머리말로 시작하면 그 머리말을 문단의 굵은 첫 줄로(가독성, 텍스트는 그대로)
+    parts = [re.sub(r"^(【[^】<]{1,160}】)", r"<b class=lead>\1</b>", x) for x in parts]
     return "".join(f"<p>{x}</p>" for x in parts)
 
 
@@ -417,12 +430,13 @@ def build(folder):
     # 🚨 보고서 제목 앞에 시나리오 id(폴더명)를 표준 prefix 로 강제한다 — operator 가 빼먹거나 부분만 써도
     # 항상 "S1-ALL-14-gov-mcp-use — <설명>" 형태가 되게(빠지는 일 방지). 기존 앞쪽 id-유사 토큰은 제거 후 재부착.
     _sid = os.path.basename(folder.rstrip("/"))
+    _sid = re.sub(r"-\d+-\d{10,}-[0-9a-f]{6}$", "", _sid)   # 스테이징 폴더 접미(ReportPublisher.stage) 제거
     _t = (spec.get("title") or "").strip()
     _t = re.sub(r"^S\d[A-Za-z0-9._-]*\s*(?:[—\-·:]\s*)?", "", _t).strip()
     _title = f"{_sid} — {_t}" if _t else _sid
     P.append(f"<!doctype html><meta charset=utf-8><title>{esc(_title)}</title>")
     P.append(f"<style>{CSS}</style><div class=wrap>")
-    P.append(f"<h1>{esc(_title)}</h1>")
+    P.append(f"<h1><span class=rid>{esc(_sid)}</span><span class=sep> — </span>{esc(_t)}</h1>" if _t else f"<h1>{esc(_title)}</h1>")
     head = f"{esc(os.path.basename(mp4))} · {dur:.0f}s · " if mp4 else "분석 리포트(영상 없음) · "
     P.append(f"<div class=meta>{head}env={esc(spec.get('env',''))}"
              f" · 생성 {datetime.date.today()}</div>")
