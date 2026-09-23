@@ -220,9 +220,11 @@ h2{font-size:18px;margin:40px 0 14px;border-left:4px solid var(--blue);padding-l
 /* 메뉴 태그 섹션: 어디부터 어디까지가 그 메뉴 태그인지 눈에 보이게(경계+배지), 앵커로 오면 하이라이트 */
 .menuanchor{position:relative;border:1px solid #bcd7f5;border-left:4px solid var(--blue);
  background:#f2f8ff;border-radius:8px;padding:10px 14px 6px;margin:16px 0}
-.menuanchor-tag{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:var(--blue);
- border-radius:6px;padding:2px 9px;margin-bottom:8px}
-.menuanchor:target{border-color:#f59e0b;border-left-color:#f59e0b;animation:mflash 1.6s ease-out}
+.menuanchor-tags{display:flex;flex-wrap:wrap;gap:4px 6px;margin-bottom:8px}
+.menuanchor-tag{display:inline-block;font-size:12px;font-weight:600;color:var(--blue);background:#e3eefc;
+ border-radius:999px;padding:1px 9px;scroll-margin-top:14px}
+.menuanchor-tag:target{background:#f59e0b;color:#fff}
+.menuanchor:target,.menuanchor:has(.menuanchor-tag:target){border-color:#f59e0b;border-left-color:#f59e0b;animation:mflash 1.6s ease-out}
 @keyframes mflash{0%{background:#fff2cc;box-shadow:0 0 0 3px #f59e0b}100%{background:#f2f8ff;box-shadow:none}}
 .sum p{margin:0 0 11px;line-height:1.75}.sum p:last-child{margin-bottom:0}
 .sum{background:var(--card);border-radius:10px;padding:14px 18px;color:#334155;
@@ -524,6 +526,7 @@ def build(folder):
         # 구조 세션 연결: 블록에 태그(어떤 트리의 경로)가 있으면 앵커 id 를 달아, 그 트리 뷰어의
         # '이 부분으로 열기'가 이 섹션으로 자동 스크롤되게 한다(slug = 뷰어/server.py 와 동일 규칙).
         # 지원: b['menu']=[..](하위호환, tree='menu') · b['tag']={tree,path} · b['tags']=[{tree,path},..]
+        _tags = []
         for (_tree, _pathstr) in _block_tags(b):
             import re as _re
             # slug: 트리 prefix + 경로. 유니코드 글자/숫자만 남기고 나머지는 -. Python \w(유니코드)와
@@ -531,11 +534,17 @@ def build(folder):
             _sl = f"{_tree}-" + "-".join(str(_pathstr).split("/"))
             _sl = _re.sub(r"-+", "-", _re.sub(r"[^\w-]+", "-", _sl, flags=_re.UNICODE)).strip("-")
             _leaf = str(_pathstr).rstrip("/").split("/")[-1]
-            # menu 는 기존 배지(🔖 leaf) 유지, 다른 구조는 트리명도 보여줌(🔖 tree · leaf).
-            _badge = f"🔖 {esc(_leaf)}" if _tree == "menu" else f"🔖 {esc(_tree)} · {esc(_leaf)}"
-            blk = (f'<div id="{_sl}" class=menuanchor data-tree="{esc(_tree)}" style="scroll-margin-top:14px" '
-                   f'title="{esc(_tree)}: {esc(str(_pathstr))}">'
-                   f'<div class=menuanchor-tag>{_badge}</div>{blk}</div>')
+            if _sl not in [t[0] for t in _tags]:
+                _tags.append((_sl, _tree, str(_pathstr), _leaf))
+        if _tags:
+            # 태그가 여러 개여도 박스는 하나 — 위에 해시태그처럼 칩을 나열한다(2026-09-23 요청).
+            # 칩마다 id 를 달아 #앵커 이동은 태그별로 그대로 되고, 트리 뷰어는 data-anchors 로 이 섹션을 찾는다.
+            _chips = "".join(
+                f'<span id="{_sl}" class=menuanchor-tag data-tree="{esc(_tree)}" title="{esc(_tree)}: {esc(_path)}">'
+                f'#{esc(_leaf) if _tree == "menu" else esc(_tree) + " · " + esc(_leaf)}</span>'
+                for (_sl, _tree, _path, _leaf) in _tags)
+            blk = (f'<div class=menuanchor data-anchors="{" ".join(t[0] for t in _tags)}" style="scroll-margin-top:14px">'
+                   f'<div class=menuanchor-tags>{_chips}</div>{blk}</div>')
         P.append(blk)
 
     if ba.get("before") and ba.get("after"):
