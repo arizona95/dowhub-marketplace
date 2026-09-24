@@ -15,8 +15,8 @@ allowed-tools:
 > env 가 "활동 중"으로 잡혀 자동 정지가 안 걸리고 하루 종일 과금된 실사고(2026-09-15). 기다림은 **한 번 조회 → 아직이면 적고 넘어감**.
 > 불가피하면 **총 30분 제한, 간격은 분 단위**, 30분 안에 안 되면 ⛔ 사유 보고. 작업이 끝나면 **탭·브라우저·프로세스를 닫는다**(열어둔 화면 = 폴링).
 > 🧭 **env 는 제품으로 찾는다** — 사용자가 제품만 말하면(예: "Claude Desktop app 에서 ~") `env("for_product", name=<제품>)` 로 그 제품에 연결된 env 들과 (계정, 플랜) 세트를 받는다. 요청에 플랜·계정이 나오면 거기서 고른다(로그인은 사람이 한다 — 비밀번호를 묻거나 적지 않는다). 하나면 그것, 여럿이면 요청 문맥(프록시 강제 exp-close / 직접 egress exp-open 등)으로 고르고 모호하면 후보를 보여주고 묻는다. `exists:false` 는 없어진 env 라 쓰지 않는다. stopped 면 `env("start", name)`. 연결된 env 가 없으면 이름으로 추정하지 말고 `env("list")` 를 보여주고 묻는다 — 새로 만들지 않는다.
-> 🛡 **도구 통제** — S1-governance 를 실증하면 셀마다 `tool_gov("set", product, artifact, creator, dist_action, …, evidence=[이 세션 보고서 rev], reason=완결 문장)` 로 기록한다. 근거 없는 O/X 는 저장되지 않는다. 정책은 `tool_gov("policy", product)`.
-> 🔗 **연결** — 같은 대상을 가리키는 트리 노드·메뉴 항목·도구 통제 셀은 `link("add", a, b, note)` 로 잇는다(주소 tree:<트리>:<경로> · item:<제품>:<키> · toolgov:<제품>:<artifact>/<creator>/<action>). 확인한 것만.
+> 🛡 **도구 통제** — S1-tool-control 을 실증하면 그 SaaS 에서 등록할 수 있는 도구(실체)마다 `tool_gov("entity_add", product, name=<그 SaaS 가 부르는 이름>, tags={kind…}, exists_evidence=[등록 예제 캡처 블록 rpt_…@n#<block_id>], exists_reason=완결 문장)` 으로 등록하고, 실증한 권한 사실마다 `tool_gov("fact_set", product, entity, fact, verdict, evidence=[캡처 블록], reason=완결 문장, actor=admin|member)` 로 기록한다(캡처 블록 목록 = `tool_gov("blocks", product, report=<rpt_…@n>)`). 근거 없는 O/X 는 저장되지 않는다. 정책은 `tool_gov("policy", product)`. 절차 정본 = S1-tool-control 지시문.
+> 🔗 **연결** — 같은 대상을 가리키는 트리 노드·메뉴 항목·도구 통제 실체는 `link("add", a, b, note)` 로 잇는다(주소 tree:<트리>:<경로> · item:<제품>:<키> · toolgov:<제품>:<실체 이름>). 확인한 것만.
 > 🔁 **다시 리뷰할 때** — `report("lines", product=<제품>)` 로 그 제품의 보고서 줄을 먼저 본다. **kind=update(업데이트 문서)** 인 줄은 빠짐없이 같은 시나리오·같은 env 로 `html_report` 를 새로 내 새 버전을 만든다(이전 버전과의 diff 가 화면에 자동으로 남는다). kind=general(일반 문서)은 바뀐 게 있을 때만. 구분을 바꾸는 건 사용자가 시킨 때만(`report("kind", …)`).
 > 🔄 **env 를 켜거나 끈 뒤(start/stop/create 완료 후)에는 콘솔을 Ctrl+Shift+R(강력 새로고침) 하고 접속하라.** 옛 연결을 물고 있으면 RDP·화면이 안 뜨는데, 그걸 env 고장으로 오판해 재시도(폴링)하지 마라.
 > 🧸 **MenuToy 갱신은 리뷰 중에 바로.** 시나리오를 만들거나 리포트를 낼 때 그 시나리오가 다룬 항목을 aar-mcp `menutoy` 로 갱신한다 —
