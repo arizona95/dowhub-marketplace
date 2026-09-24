@@ -48,6 +48,8 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 ## 4) 체크리스트 연결 갱신
 - reparse 결과 `detail.added/removed/changed` 의 키를 보고, 체크리스트 항목이 가리키던 메뉴 키가 **사라지거나 바뀌었으면** annotations 를 고친다:
   `menutoy("checklist_set", …)`·`menutoy("popup_set", …)`·`menutoy("web_add", …)` 로(원시 키를 직접 만지는 `annotation_set` 은 마지막 수단).
+  메뉴 항목 ↔ 체크리스트 문항 연결의 정본은 **연결 Link** — `popup_set(ck="@genai.x.y.Z")`·`link("add", a="item:<제품>:<키>", b="ck:genai.x.y.Z")` 로 잇고,
+  사라진 메뉴의 연결은 `link("remove", …, reason=…)` 로 끊는다(팝업 ck 에서 지워도 끊기지 않는다).
 - 새로 생긴 메뉴(added)가 보안 항목이면 팝업 권고를 채운다(sev·adv·risk). 판정(O/X/-/?)은 **근거가 있을 때만**, 없으면 ?.
 
 ## 5) 웹 근거 카드 — 메뉴가 아니라 문서로 확인하는 항목
@@ -61,7 +63,7 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 ```
 [aar_menutoy YYYY-MM-DD] <product> · 소스 N · 수집 <페이지수> · 파싱 오류 <n> · toy +a −r ✏c (커밋 <hash7>) · 체크리스트 연결 갱신 <n>건 · 막힘: <사유>
 ```
-링크: `https://dowmain.org/agentautoreview/?m=menutoy&product=<product>` (관리자 로그인 필요).
+링크: 메뉴 재현 `https://dowmain.org/agentautoreview/?p=<product>&v=toy` (누구나 — 비관리자에게는 체크리스트·이메일이 가려진다) · 체크리스트 `…&v=checklist` (관리자 로그인 필요).
 
 ## 절대 규칙
 - 파서·정의 외에 서버 파일을 직접 만지지 않는다. 사람 데이터(annotations)는 4) 의 갱신 목적으로만.
