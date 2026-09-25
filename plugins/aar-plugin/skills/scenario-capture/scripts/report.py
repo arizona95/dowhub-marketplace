@@ -533,9 +533,11 @@ def build(folder):
             return "".join(o)
         return ""
 
-    for b in spec.get("blocks", []):
+    for _bi, b in enumerate(spec.get("blocks", [])):
         # 🚨 지역변수 이름을 'html' 로 쓰면 모듈 `import html` 이 build() 전체에서 가려져
         #    esc=lambda: html.escape(...) 가 NameError 로 터진다(2026-08 실사고). → blk 로.
+        # _bi = report.json 블록 목록의 자리(0부터) = atom DB Report.blocks 의 자리(보고서 Link 의 블록 찾기 index, 2026-09-25).
+        #       셸 보고서 뷰어·트리 노드 상세가 .menuanchor[data-bi] 로 그 블록을 찾는다(태그 slug 맞춤보다 먼저 — 같은 태그가 여러 블록이어도 정확히).
         blk = _block(b)
         # 구조 세션 연결: 블록에 태그(어떤 트리의 경로)가 있으면 앵커 id 를 달아, 그 트리 뷰어의
         # '이 부분으로 열기'가 이 섹션으로 자동 스크롤되게 한다(slug = 뷰어/server.py 와 동일 규칙).
@@ -557,8 +559,12 @@ def build(folder):
                 f'<span id="{_sl}" class=menuanchor-tag data-tree="{esc(_tree)}" title="{esc(_tree)}: {esc(_path)}">'
                 f'#{esc(_leaf) if _tree == "menu" else esc(_tree) + " · " + esc(_leaf)}</span>'
                 for (_sl, _tree, _path, _leaf) in _tags)
-            blk = (f'<div class=menuanchor data-anchors="{" ".join(t[0] for t in _tags)}" style="scroll-margin-top:14px">'
+            blk = (f'<div class=menuanchor data-bi="{_bi}" data-anchors="{" ".join(t[0] for t in _tags)}" style="scroll-margin-top:14px">'
                    f'<div class=menuanchor-tags>{_chips}</div>{blk}</div>')
+        elif blk and isinstance(b, dict) and any(isinstance(x, str) and x.strip() for x in (b.get("items") or [])):
+            # 태그 없이 항목 id(items — tnd_…·itm_…)로 이은 블록: 해시태그 칩은 없고(보이는 이름이 없다) 같은 상자·data-bi 만 —
+            # 셸 뷰어가 이 블록에 연결 행(서버 GET /api/report/links 의 그 블록)을 붙이고, 트리 노드 상세가 이 부분을 찾는다.
+            blk = f'<div class=menuanchor data-bi="{_bi}" data-anchors="" style="scroll-margin-top:14px">{blk}</div>'
         P.append(blk)
 
     if ba.get("before") and ba.get("after"):
