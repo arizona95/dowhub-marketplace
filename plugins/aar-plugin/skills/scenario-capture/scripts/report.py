@@ -300,6 +300,11 @@ table.rt td:first-child,table.rt th:first-child{white-space:nowrap}
 table.rt th{background:#e2e8f0;color:#1e293b;font-weight:700;position:sticky;top:0;border-bottom:2px solid #475569}
 table.rt tbody tr:nth-child(even){background:#f1f5f9}
 table.rt td:first-child{font-family:monospace}
+.graph{margin:14px 0;border:1px solid #cbd5e0;border-radius:10px;background:#fff;overflow:hidden}
+.graph .gsvg{overflow-x:auto;background:#fff}
+.graph .gsvg svg{display:block;max-width:100%;height:auto}
+.graph .gcap{padding:8px 14px;border-top:1px solid #e2e8f0;color:#1e293b;font-size:14px}
+.graph .gcap a{color:#2b6cb0;font-size:12px;margin-left:8px}
 """
 
 
@@ -487,6 +492,20 @@ def build(folder):
         if t in ("shot", "frame", "image", "img"):
             return (f"<div class=tl><div class=row>{_img('img/' + b.get('file', ''))}"
                     f"<div class=what>{esc(b.get('caption', ''))}{_srcurl(b.get('url'))}</div></div></div>")
+        if t == "graph":  # 관계 그래프(2026-09-28) — 사진이 아니라 데이터. 발행이 그 rev 를 그린 img/<slug>-r<rev>.svg 를 **인라인**한다(그리기 코드는 aar_core 한 곳)
+            f = b.get("file", "")
+            fp = os.path.join(folder, "img", f) if f else ""
+            svg = ""
+            if fp and os.path.exists(fp):
+                svg = open(fp, encoding="utf-8").read()
+                svg = re.sub(r"^\s*<\?xml[^>]*>\s*", "", svg)
+            if not svg:
+                return (f"<div class=invmiss><b>⚠️ 그래프 그림 없음:</b> <code>img/{esc(f)}</code> — 발행(html_report)이 graph 블록의 그림을 만들지 못했다"
+                        f"({esc(b.get('graph', ''))}).</div>")
+            cap = esc(b.get("caption", ""))
+            full = f"<a href=\"img/{esc(f)}\" target=_blank rel=noopener>↗ 원본 크기</a>"
+            return (f"<div class=graph data-graph=\"{esc(b.get('graph', ''))}\" data-graph-rev=\"{esc(b.get('graph_rev', ''))}\">"
+                    f"<div class=gsvg>{svg}</div><div class=gcap>{cap}{full}</div></div>")
         if t == "doc":  # 공식문서 증거 3종 세트(캡처+글귀+증명) — 보통 S0 인용
             o = ["<div class=inv><div class='step doc'><span class=badge>📄 공식문서 (참조 · 틀릴 수 있음)</span>"]
             if b.get("file"):
