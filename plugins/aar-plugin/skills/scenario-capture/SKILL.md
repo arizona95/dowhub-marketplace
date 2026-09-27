@@ -131,6 +131,7 @@ S1 은 최소 **before(룰 전 정상) / after(룰 후 차단) / proxy(L7-proxy 
 4. **보고서** — `html_report`(또는 `report.py`)로 **세션 폴더**에 만든다. before/after/timeline `file` 은 방금 찍은 캡처 라벨. **캡처에 없는 장면은 절대 쓰지 않는다.** 머니샷이 캡처에 안 보이면 3 실패 → 1로 돌아간다. **🚨 프레임 없으면 주장 없음.**
 
 ## 6. 보고서 산출 (세션 폴더 · html_report)
+- 📈 **그래프(관계 그래프·구성도)는 사진이 아니라 Graph 데이터로 올린다(2026-09-28)** — MCP `graph("put")` 로 영역·노드·흐름·간선을 올리고 블록 `{"type":"graph","graph":"<code>"}` 로 넣는다(발행이 rev 를 고정하고 그림을 만든다). HTML/SVG 를 그려 캡처하거나 이미지 파일로 올리지 않는다 — 절차는 `skill("get", "aar_review/report-skills/section2-arch-diagram")`.
 - 출력 = `Auto_Report/sessions/<env>-<생성일>/<시나리오>/{report.html, report.json, img/}`.
 - `report.json`: `before_after`/`timeline` 프레임(방금 캡처) + `analysis`(빌드 시 이 env 아카이브에 archive.py 실행돼 박힘, 날조 불가) + `why`/`failure_angle`.
 - `report.py build <세션폴더>` 가 html 생성. analysis cmd 는 `runs/envs/<env>/captures/archives/...` 의 **이번 env 실데이터**를 집계.
