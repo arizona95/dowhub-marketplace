@@ -27,7 +27,7 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
 
 ## 1) 수집 — 잡으로 시작하고 상태를 받는다
 1. env 가 running 인지 `env("get")`. VM 의 브라우저(Edge)에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫).
-2. `menutoy("collect", product, source, url="claude-exp-close")` → 즉시 `{job, pages, eta_min}`. 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**
+2. `menutoy("collect", product, source, url="claude-exp-close")` → 즉시 `{job, pages, eta_min}`. 관리자 콘솔 소스는 관리자 계정 PC 에서: `meta={"component": "admin-window-pc"}`(멤버 PC 브라우저엔 관리자 화면이 없다). 서버가 콘솔(RDP)을 통해 VM 의 **로그인된 실제 브라우저**
    활성 탭에 URL 을 쳐서 열고 DOM 을 꺼내(클립보드 조각) 저장·파싱한다. 페이지당 1분쯤. (한 요청으로 끝까지 기다리는 방식은 원격 MCP 경로가 100초에 끊어 폐기 — 2026-09-16.)
 3. `menutoy("collect_status", key=<job>, at="80")` — 서버가 80초까지 기다렸다가 답한다. `status` 가 running 이면 다시 부른다.
    **한도: 최대 25번(≈30분).** 그 안에 done 이 안 오면 ⛔ 사유 보고하고 멈춘다(그 이상은 폴링). done 이면 `result.pages[]`(ok·html_bytes·error) 와 `result.reparse` 를 그대로 보고에 쓴다.
@@ -59,9 +59,14 @@ toy = 제품(product = 센싱 slug = 트리 제품 노드, 예 `claude-app`) 하
   `menutoy("web_add", product, title="<제목 — 무엇을 증명하나>", url=<연 URL 그대로>, note="<해당 문장 요지 + 확인일>", ck="@genai.x.y.Z …", cert=True|False)`.
   cert=True 는 인증 페이지만. 열지 않은 URL·기억으로 아는 내용은 날조다 — 넣지 마라. 페이지가 사라지거나 내용이 바뀌었으면 카드를 `web_remove` 하거나 note 를 갱신한다.
 
+## 5-1) 트리와 맞춰 보기 — `menutoy("drift", product)`
+수집이 succeeded 면 메뉴 트리와의 어긋남을 본다: tree_behind(화면이 바뀌었는데 트리가 옛 모습)·toy_behind(트리엔 있는데 수집이 못 따라옴).
+toy_behind(수집 목록에 없는 페이지·탭, 파서가 못 읽는 칸)는 여기서 고친다(source_set urls·파서 → 재수집). tree_behind 는 트리 갱신이라
+`/aar_update` 의 「메뉴 재현 ↔ 트리 루프」에서 고친다(보고서 태그 경로와 한 작업). 모든 칸을 트리와 이을 필요는 없다 — 후보는 화면으로 확인한다.
+
 ## 6) 보고
 ```
-[aar_menutoy YYYY-MM-DD] <product> · 소스 N · 수집 <페이지수> · 파싱 오류 <n> · toy +a −r ✏c (커밋 <hash7>) · 체크리스트 연결 갱신 <n>건 · 막힘: <사유>
+[aar_menutoy YYYY-MM-DD] <product> · 소스 N · 수집 <페이지수> · 파싱 오류 <n> · toy +a −r ✏c (커밋 <hash7>) · 체크리스트 연결 갱신 <n>건 · drift tree_behind <n> / toy_behind <n>(고침 <n>) · 막힘: <사유>
 ```
 링크: 메뉴 재현 `https://dowmain.org/agentautoreview/?p=<product>&v=toy` (누구나 — 비관리자에게는 체크리스트·이메일이 가려진다) · 체크리스트 `…&v=checklist` (관리자 로그인 필요).
 
