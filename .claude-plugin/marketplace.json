@@ -106,31 +106,6 @@
       }
     },
     {
-      "name": "gmail-dowoo",
-      "description": "Personal Gmail for one account - reads and writes only the owner's own inbox (fixed recipient, fixed app password).",
-      "version": "",
-      "hub": {
-        "title": "Gmail (dowoo)",
-        "icon": "📧",
-        "type": "mcp",
-        "status": "published",
-        "version": "1.0.0",
-        "url": "https://dowhub.org/gmail_dowoo/",
-        "auth": "oauth",
-        "tools": [
-          "list_mail",
-          "read_mail",
-          "search_mail",
-          "send_mail"
-        ],
-        "modes": [
-          "remote_mcp",
-          "local_mcp"
-        ]
-      },
-      "source": "./mcp/gmail-dowoo"
-    },
-    {
       "name": "test-dowoo",
       "description": "Minimal read/write MCP - a connection monitor, and the guinea pig for plugin-marketplace experiments.",
       "version": "",
