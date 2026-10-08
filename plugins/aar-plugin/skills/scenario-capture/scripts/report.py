@@ -49,11 +49,11 @@ report.json schema (all 'file' are written into <folder>/img/ by build):
   "failure_angle":  ["직전 실패 + 무엇을 고쳤나", ...]
 }
 """
+
 import re
 import sys, os, json, glob, html, subprocess, datetime, pathlib
 
-FFMPEG_IMG = "linuxserver/ffmpeg"   # dockerized ffmpeg/ffprobe (no local install needed)
-
+FFMPEG_IMG = "linuxserver/ffmpeg"  # dockerized ffmpeg/ffprobe (no local install needed)
 
 
 # ── 분석 블록 실행기 ─────────────────────────────────────────────────────────
@@ -67,7 +67,14 @@ _ANALYSIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _SHELL_META = ("|", ";", "&", ">", "<", "`", "$(", "\n", "\r")
 # 🚨 분석 블록이 돌릴 수 있는 스크립트는 이 **고정 목록**뿐이다(R13). 전엔 같은 폴더의 모든 .py 를
 #    허용해 `python3 report.py build …`(빌더 자신)·테스트 스크립트도 분석으로 실행됐다.
-_ANALYZERS = ("archive.py", "cli_dlp.py", "cli_egress.py", "cli_otel.py", "cli_tenant.py", "cli_tool.py")
+_ANALYZERS = (
+    "archive.py",
+    "cli_dlp.py",
+    "cli_egress.py",
+    "cli_otel.py",
+    "cli_tenant.py",
+    "cli_tool.py",
+)
 # 빌드 한 번 동안의 분석 실패 목록 — build() 가 비우고, 렌더러가 채우고, 끝에 결과로 내보낸다.
 _ANALYSIS_FAILURES = []
 
@@ -75,12 +82,15 @@ _ANALYSIS_FAILURES = []
 def _analysis_argv(cmd):
     """분석 cmd 문자열 → 실행 가능한 argv. 못 돌릴 것이면 (None, 사유)."""
     import shlex
+
     if not cmd or not cmd.strip():
         return None, "빈 명령"
     for meta in _SHELL_META:
         if meta in cmd:
-            return None, (f"셸 문법({meta!r})은 실행하지 않는다 — 분석 블록은 "
-                          f"scenario-capture/scripts 의 분석 스크립트만 돌린다")
+            return None, (
+                f"셸 문법({meta!r})은 실행하지 않는다 — 분석 블록은 "
+                f"scenario-capture/scripts 의 분석 스크립트만 돌린다"
+            )
     try:
         argv = shlex.split(cmd)
     except ValueError as e:
@@ -90,7 +100,10 @@ def _analysis_argv(cmd):
     if os.path.basename(argv[0]) not in ("python", "python3"):
         return None, f"허용되지 않은 실행파일: {argv[0]!r} (python3 만)"
     if argv[1].startswith("-"):
-        return None, f"옵션 실행({argv[1]!r})은 허용하지 않는다 — 스크립트 파일이어야 한다"
+        return (
+            None,
+            f"옵션 실행({argv[1]!r})은 허용하지 않는다 — 스크립트 파일이어야 한다",
+        )
     # 🚨 경로는 **무시하고 파일명만** 본다. 옛 리포트의 cmd 는 .claude/skills/... 같은 지금은
     #    없는 경로를 갖고 있는데, 파일명으로 현재 폴더에서 찾으면 그대로 다시 돌릴 수 있고
     #    동시에 폴더 밖 실행을 원천 차단할 수 있다.
@@ -98,7 +111,10 @@ def _analysis_argv(cmd):
     if not name.endswith(".py"):
         return None, f"분석 스크립트가 아니다: {argv[1]!r}"
     if name not in _ANALYZERS:
-        return None, f"허용된 분석 스크립트가 아니다: {name} (사용 가능: {', '.join(_ANALYZERS)})"
+        return (
+            None,
+            f"허용된 분석 스크립트가 아니다: {name} (사용 가능: {', '.join(_ANALYZERS)})",
+        )
     target = os.path.join(_ANALYSIS_DIR, name)
     if not os.path.isfile(target):
         return None, f"분석 스크립트 파일이 없다: {name}"
@@ -110,19 +126,30 @@ def _run_analysis_result(cmd, cwd):
     (R13: 전엔 실패도 문자열로 바꿔 stdout 처럼 박혀 빌드가 성공으로 끝났다.)"""
     argv, why = _analysis_argv(cmd)
     if argv is None:
-        return {"ok": False, "exit_code": None, "output": "", "error": f"rejected: {why}"}
+        return {
+            "ok": False,
+            "exit_code": None,
+            "output": "",
+            "error": f"rejected: {why}",
+        }
     try:
         env = dict(os.environ)
         env.setdefault("AGENTREVIEW_REPO_ROOT", cwd or "")
-        res = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=120, env=env)
+        res = subprocess.run(
+            argv, cwd=cwd, capture_output=True, text=True, timeout=120, env=env
+        )
         out = (res.stdout + res.stderr).rstrip()
         if res.returncode != 0:
-            return {"ok": False, "exit_code": res.returncode, "output": out,
-                    "error": f"exit {res.returncode}"}
+            return {
+                "ok": False,
+                "exit_code": res.returncode,
+                "output": out,
+                "error": f"exit {res.returncode}",
+            }
         return {"ok": True, "exit_code": 0, "output": out or "(no output)", "error": ""}
     except subprocess.TimeoutExpired:
         return {"ok": False, "exit_code": None, "output": "", "error": "timeout 120s"}
-    except Exception as e:                                   # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return {"ok": False, "exit_code": None, "output": "", "error": f"failed: {e}"}
 
 
@@ -132,9 +159,17 @@ def _run_analysis(cmd, cwd):
     r = _run_analysis_result(cmd, cwd)
     if r["ok"]:
         return r["output"]
-    _ANALYSIS_FAILURES.append({"cmd": cmd, "error": r["error"], "exit_code": r["exit_code"],
-                               "output": (r["output"] or "")[-800:]})
-    return f"[analysis FAILED: {r['error']}]" + (("\n" + r["output"]) if r["output"] else "")
+    _ANALYSIS_FAILURES.append(
+        {
+            "cmd": cmd,
+            "error": r["error"],
+            "exit_code": r["exit_code"],
+            "output": (r["output"] or "")[-800:],
+        }
+    )
+    return f"[analysis FAILED: {r['error']}]" + (
+        ("\n" + r["output"]) if r["output"] else ""
+    )
 
 
 def _pathstr(p):
@@ -175,10 +210,26 @@ def _mp4(folder):
 
 def _duration(folder, mp4):
     out = subprocess.run(
-        ["docker", "run", "--rm", "-v", f"{folder}:/v", "--entrypoint", "ffprobe", FFMPEG_IMG,
-         "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
-         f"/v/{os.path.basename(mp4)}"],
-        capture_output=True, text=True).stdout.strip()
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{folder}:/v",
+            "--entrypoint",
+            "ffprobe",
+            FFMPEG_IMG,
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "csv=p=0",
+            f"/v/{os.path.basename(mp4)}",
+        ],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
     try:
         return float(out)
     except ValueError:
@@ -190,10 +241,30 @@ def _extract(folder, mp4, t, outrel, width=1280, q=3):
     outp = os.path.join(folder, outrel)
     os.makedirs(os.path.dirname(outp), exist_ok=True)
     subprocess.run(
-        ["docker", "run", "--rm", "-v", f"{folder}:/v", "--entrypoint", "ffmpeg", FFMPEG_IMG,
-         "-ss", str(t), "-i", f"/v/{os.path.basename(mp4)}", "-frames:v", "1",
-         "-vf", f"scale={width}:-1", "-q:v", str(q), "-y", f"/v/{outrel}"],
-        capture_output=True)
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{folder}:/v",
+            "--entrypoint",
+            "ffmpeg",
+            FFMPEG_IMG,
+            "-ss",
+            str(t),
+            "-i",
+            f"/v/{os.path.basename(mp4)}",
+            "-frames:v",
+            "1",
+            "-vf",
+            f"scale={width}:-1",
+            "-q:v",
+            str(q),
+            "-y",
+            f"/v/{outrel}",
+        ],
+        capture_output=True,
+    )
     return os.path.exists(outp)
 
 
@@ -332,7 +403,9 @@ def _resolve_img(folder, name):
 def _inv_steps(spec):
     """investigation(=evidence) 의 스텝 목록. 캡처를 참조하는 스텝만."""
     inv = spec.get("investigation") or spec.get("evidence") or {}
-    return [x for x in (inv.get("steps") or []) if isinstance(x, dict) and x.get("file")]
+    return [
+        x for x in (inv.get("steps") or []) if isinstance(x, dict) and x.get("file")
+    ]
 
 
 def _rich(text):
@@ -341,12 +414,11 @@ def _rich(text):
     s = html.escape(str(text or ""))
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s, flags=re.S)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
-    s = re.sub(r"\s+(?=(?:<b>)?[\u2460-\u2473])", "\n\n", s)   # ①~⑳ 앞에서 문단 분리
+    s = re.sub(r"\s+(?=(?:<b>)?[\u2460-\u2473])", "\n\n", s)  # ①~⑳ 앞에서 문단 분리
     parts = [x.strip() for x in re.split(r"\n\s*\n", s) if x.strip()]
     # 문단이 【…】 머리말로 시작하면 그 머리말을 문단의 굵은 첫 줄로(가독성, 텍스트는 그대로)
     parts = [re.sub(r"^(【[^】<]{1,160}】)", r"<b class=lead>\1</b>", x) for x in parts]
     return "".join(f"<p>{x}</p>" for x in parts)
-
 
 
 def _img(rel, cls=""):
@@ -406,6 +478,7 @@ def build(folder):
         print("⚠️ frame MISSING for:", miss)
 
     esc = lambda s: html.escape(str(s))
+
     # analysis/table cmd 는 cwd=repo(SDSreviewBLUE root)에서 `aar-plugin/skills/scenario-capture/scripts/archive.py` 상대경로로
     # 돈다. 세션폴더 깊이(Auto_Report/sessions/<session>/<scenario> = 4단)가 고정이 아니므로 `../../..`
     # 하드코딩은 Auto_Report 로 잘못 잡힌다(2026-07 버그) → `aar-plugin/skills/scenario-capture` 가 보일
@@ -417,34 +490,51 @@ def build(folder):
             return os.path.abspath(explicit)
         d = os.path.abspath(start)
         for _ in range(8):
-            if os.path.isdir(os.path.join(d, "runs", "envs")) or os.path.isdir(os.path.join(d, "Auto_Report")):
+            if os.path.isdir(os.path.join(d, "runs", "envs")) or os.path.isdir(
+                os.path.join(d, "Auto_Report")
+            ):
                 return d
             nd = os.path.dirname(d)
             if nd == d:
                 break
             d = nd
         return os.path.abspath(os.path.join(start, "..", "..", ".."))
+
     repo = _find_repo(folder)
     CIRCLE = "①②③④⑤⑥⑦⑧⑨⑩"
     _n = [0]
+
     def H2(title):
         c = CIRCLE[_n[0]] if _n[0] < len(CIRCLE) else f"({_n[0]+1})"
         _n[0] += 1
         return f"<h2>{c} {esc(title)}</h2>"
+
     P = []
     # 🚨 보고서 제목 앞에 시나리오 id(폴더명)를 표준 prefix 로 강제한다 — operator 가 빼먹거나 부분만 써도
     # 항상 "S1-ALL-14-gov-mcp-use — <설명>" 형태가 되게(빠지는 일 방지). 기존 앞쪽 id-유사 토큰은 제거 후 재부착.
     _sid = os.path.basename(folder.rstrip("/"))
-    _sid = re.sub(r"-\d+-\d{10,}-[0-9a-f]{6}$", "", _sid)   # 스테이징 폴더 접미(ReportPublisher.stage) 제거
+    _sid = re.sub(
+        r"-\d+-\d{10,}-[0-9a-f]{6}$", "", _sid
+    )  # 스테이징 폴더 접미(ReportPublisher.stage) 제거
     _t = (spec.get("title") or "").strip()
     _t = re.sub(r"^S\d[A-Za-z0-9._-]*\s*(?:[—\-·:]\s*)?", "", _t).strip()
     _title = f"{_sid} — {_t}" if _t else _sid
     P.append(f"<!doctype html><meta charset=utf-8><title>{esc(_title)}</title>")
     P.append(f"<style>{CSS}</style><div class=wrap>")
-    P.append(f"<h1><span class=rid>{esc(_sid)}</span><span class=sep> — </span>{esc(_t)}</h1>" if _t else f"<h1>{esc(_title)}</h1>")
-    head = f"{esc(os.path.basename(mp4))} · {dur:.0f}s · " if mp4 else "분석 리포트(영상 없음) · "
-    P.append(f"<div class=meta>{head}env={esc(spec.get('env',''))}"
-             f" · 생성 {datetime.date.today()}</div>")
+    P.append(
+        f"<h1><span class=rid>{esc(_sid)}</span><span class=sep> — </span>{esc(_t)}</h1>"
+        if _t
+        else f"<h1>{esc(_title)}</h1>"
+    )
+    head = (
+        f"{esc(os.path.basename(mp4))} · {dur:.0f}s · "
+        if mp4
+        else "분석 리포트(영상 없음) · "
+    )
+    P.append(
+        f"<div class=meta>{head}env={esc(spec.get('env',''))}"
+        f" · 생성 {datetime.date.today()}</div>"
+    )
     if spec.get("summary"):
         P.append(f"<div class=sum>{_rich(spec['summary'])}</div>")
 
@@ -452,13 +542,17 @@ def build(folder):
     # not just frames extracted from it. Frames remain the "no frame, no claim" proof;
     # the video lets a reviewer scrub the whole run and confirm the frames in context.
     if mp4:
-        P.append(f"<video class=rec controls preload=metadata "
-                 f"src=\"{esc(os.path.basename(mp4))}\"></video>")
+        P.append(
+            f"<video class=rec controls preload=metadata "
+            f'src="{esc(os.path.basename(mp4))}"></video>'
+        )
 
     # ── 자유 구성 blocks (순서·반복·종류 자유) ─────────────────────────────────
     # spec["blocks"] = 시나리오에 맞게 operator 가 고른 블록들. 고정 타입 강제 없음.
     # 같은 종류를 여러 번 써도 되고(전/후 두 번 등), 영상은 필요할 때만(필수 아님).
-    def _srcurl(u):   # 촬영 당시 브라우저 URL → 클릭 가능한 링크(캡처와 함께 기록된 .url)
+    def _srcurl(
+        u,
+    ):  # 촬영 당시 브라우저 URL → 클릭 가능한 링크(캡처와 함께 기록된 .url)
         u = (u or "").strip()
         if not u:
             return ""
@@ -466,10 +560,20 @@ def build(folder):
         # token=)은 보고서를 밖에서 열면 죽은 링크이고 토큰도 만료·세션귀속이라 링크로 박지 않는다.
         # S0 웹리서치처럼 실제 공개 URL(공식문서 등)일 때만 클릭 링크로 남긴다.
         low = u.lower()
-        if any(x in low for x in ("localhost", "127.0.0.1", ":5174", ":5190",
-                                  "/remote/#/client", "/remote/", "token=")):
+        if any(
+            x in low
+            for x in (
+                "localhost",
+                "127.0.0.1",
+                ":5174",
+                ":5190",
+                "/remote/#/client",
+                "/remote/",
+                "token=",
+            )
+        ):
             return ""
-        return (f"<div class=srcurl>🔗 촬영 위치: <a href=\"{esc(u)}\" target=_blank rel=noopener>{esc(u)}</a></div>")
+        return f'<div class=srcurl>🔗 촬영 위치: <a href="{esc(u)}" target=_blank rel=noopener>{esc(u)}</a></div>'
 
     def _block(b):
         if not isinstance(b, dict):
@@ -481,18 +585,29 @@ def build(folder):
             return f"<div class=sum>{_rich(b.get('text', ''))}</div>"
         if t in ("before_after", "ba"):
             out = ["<div class=ba>"]
-            for side, lab in (("before", "BEFORE · 행동 전"), ("after", "AFTER · 행동 후")):
+            for side, lab in (
+                ("before", "BEFORE · 행동 전"),
+                ("after", "AFTER · 행동 후"),
+            ):
                 r = b.get(side) or {}
-                out.append(f"<div class='col {side}'><div class=tag>{lab}</div>"
-                           f"{_img('img/' + r.get('file', ''))}<div class=cap>{esc(r.get('caption', ''))}</div>{_srcurl(r.get('url'))}</div>")
+                out.append(
+                    f"<div class='col {side}'><div class=tag>{lab}</div>"
+                    f"{_img('img/' + r.get('file', ''))}<div class=cap>{esc(r.get('caption', ''))}</div>{_srcurl(r.get('url'))}</div>"
+                )
             out.append("</div>")
             if b.get("changed"):
-                out.append(f"<div class=changed><b>무엇이 바뀌었나:</b> {esc(b['changed'])}</div>")
+                out.append(
+                    f"<div class=changed><b>무엇이 바뀌었나:</b> {esc(b['changed'])}</div>"
+                )
             return "".join(out)
         if t in ("shot", "frame", "image", "img"):
-            return (f"<div class=tl><div class=row>{_img('img/' + b.get('file', ''))}"
-                    f"<div class=what>{esc(b.get('caption', ''))}{_srcurl(b.get('url'))}</div></div></div>")
-        if t == "graph":  # 관계 그래프(2026-09-28) — 사진이 아니라 데이터. 발행이 그 rev 를 그린 img/<slug>-r<rev>.svg 를 **인라인**한다(그리기 코드는 aar_core 한 곳)
+            return (
+                f"<div class=tl><div class=row>{_img('img/' + b.get('file', ''))}"
+                f"<div class=what>{esc(b.get('caption', ''))}{_srcurl(b.get('url'))}</div></div></div>"
+            )
+        if (
+            t == "graph"
+        ):  # 관계 그래프(2026-09-28) — 사진이 아니라 데이터. 발행이 그 rev 를 그린 img/<slug>-r<rev>.svg 를 **인라인**한다(그리기 코드는 aar_core 한 곳)
             f = b.get("file", "")
             fp = os.path.join(folder, "img", f) if f else ""
             svg = ""
@@ -500,22 +615,30 @@ def build(folder):
                 svg = open(fp, encoding="utf-8").read()
                 svg = re.sub(r"^\s*<\?xml[^>]*>\s*", "", svg)
             if not svg:
-                return (f"<div class=invmiss><b>⚠️ 그래프 그림 없음:</b> <code>img/{esc(f)}</code> — 발행(html_report)이 graph 블록의 그림을 만들지 못했다"
-                        f"({esc(b.get('graph', ''))}).</div>")
+                return (
+                    f"<div class=invmiss><b>⚠️ 그래프 그림 없음:</b> <code>img/{esc(f)}</code> — 발행(html_report)이 graph 블록의 그림을 만들지 못했다"
+                    f"({esc(b.get('graph', ''))}).</div>"
+                )
             cap = esc(b.get("caption", ""))
-            full = f"<a href=\"img/{esc(f)}\" target=_blank rel=noopener>↗ 원본 크기</a>"
-            return (f"<div class=graph data-graph=\"{esc(b.get('graph', ''))}\" data-graph-rev=\"{esc(b.get('graph_rev', ''))}\">"
-                    f"<div class=gsvg>{svg}</div><div class=gcap>{cap}{full}</div></div>")
+            full = f'<a href="img/{esc(f)}" target=_blank rel=noopener>↗ 원본 크기</a>'
+            return (
+                f"<div class=graph data-graph=\"{esc(b.get('graph', ''))}\" data-graph-rev=\"{esc(b.get('graph_rev', ''))}\">"
+                f"<div class=gsvg>{svg}</div><div class=gcap>{cap}{full}</div></div>"
+            )
         if t == "doc":  # 공식문서 증거 3종 세트(캡처+글귀+증명) — 보통 S0 인용
-            o = ["<div class=inv><div class='step doc'><span class=badge>📄 공식문서 (참조 · 틀릴 수 있음)</span>"]
+            o = [
+                "<div class=inv><div class='step doc'><span class=badge>📄 공식문서 (참조 · 틀릴 수 있음)</span>"
+            ]
             if b.get("file"):
-                o.append(_img('img/' + b['file']))
+                o.append(_img("img/" + b["file"]))
             o.append(f"<div class=body>{esc(b.get('caption', ''))}")
             q = b.get("quote") or b.get("found")
             if q:
                 o.append(f"<div class=quote>“{esc(q)}”</div>")
             if b.get("proves"):
-                o.append(f"<div class=res>🎯 이 글귀가 증명하는 것: {esc(b['proves'])}</div>")
+                o.append(
+                    f"<div class=res>🎯 이 글귀가 증명하는 것: {esc(b['proves'])}</div>"
+                )
             if b.get("source"):
                 o.append(f"<div class=src>출처: {esc(b['source'])}</div>")
             o.append(_srcurl(b.get("url")))
@@ -523,16 +646,31 @@ def build(folder):
             return "".join(o)
         if t == "video":
             f = b.get("file", "")
-            return f"<video class=rec controls preload=metadata src=\"{esc(f)}\"></video>" if f else ""
-        if t in ("analysis", "bash", "cmd"):  # 빌드 시 cmd 실제 실행되어 박힘(날조 불가)
+            return (
+                f'<video class=rec controls preload=metadata src="{esc(f)}"></video>'
+                if f
+                else ""
+            )
+        if t in (
+            "analysis",
+            "bash",
+            "cmd",
+        ):  # 빌드 시 cmd 실제 실행되어 박힘(날조 불가)
             cmd = b.get("cmd", "")
-            cap = f"<div class=acmd>{esc(b['caption'])}</div>" if b.get("caption") else ""
+            cap = (
+                f"<div class=acmd>{esc(b['caption'])}</div>" if b.get("caption") else ""
+            )
             o = _run_analysis(cmd, repo)
-            return cap + f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(o)}</pre>"
+            return (
+                cap
+                + f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(o)}</pre>"
+            )
         if t in ("table", "tbl"):
             # 표 블록. rows 를 직접 주거나(정적), cmd 를 주면 빌드 시 실행해 stdout 을 TSV(탭구분)로
             # 파싱해 행으로 박는다 → 실데이터 표(날조 불가, analysis 와 동일 원리). columns=헤더.
-            cap = f"<div class=acmd>{esc(b['caption'])}</div>" if b.get("caption") else ""
+            cap = (
+                f"<div class=acmd>{esc(b['caption'])}</div>" if b.get("caption") else ""
+            )
             cols = b.get("columns") or []
             rows = b.get("rows")
             if rows is None and b.get("cmd"):
@@ -543,11 +681,17 @@ def build(folder):
             rows = rows or []
             o = [cap, "<table class=rt>"]
             if cols:
-                o.append("<thead><tr>" + "".join(f"<th>{esc(str(c))}</th>" for c in cols) + "</tr></thead>")
+                o.append(
+                    "<thead><tr>"
+                    + "".join(f"<th>{esc(str(c))}</th>" for c in cols)
+                    + "</tr></thead>"
+                )
             o.append("<tbody>")
             for r in rows:
                 cells = r if isinstance(r, (list, tuple)) else [r]
-                o.append("<tr>" + "".join(f"<td>{esc(str(c))}</td>" for c in cells) + "</tr>")
+                o.append(
+                    "<tr>" + "".join(f"<td>{esc(str(c))}</td>" for c in cells) + "</tr>"
+                )
             o.append("</tbody></table>")
             return "".join(o)
         return ""
@@ -562,12 +706,15 @@ def build(folder):
         # '이 부분으로 열기'가 이 섹션으로 자동 스크롤되게 한다(slug = 뷰어/server.py 와 동일 규칙).
         # 지원: b['menu']=[..](하위호환, tree='menu') · b['tag']={tree,path} · b['tags']=[{tree,path},..]
         _tags = []
-        for (_tree, _pathstr) in _block_tags(b):
+        for _tree, _pathstr in _block_tags(b):
             import re as _re
+
             # slug: 트리 prefix + 경로. 유니코드 글자/숫자만 남기고 나머지는 -. Python \w(유니코드)와
             # JS \p{L}\p{N}_ 가 같은 결과를 내도록 규칙 일치(日本語 등 비한글 보존 — viewer 앵커와 동일).
             _sl = f"{_tree}-" + "-".join(str(_pathstr).split("/"))
-            _sl = _re.sub(r"-+", "-", _re.sub(r"[^\w-]+", "-", _sl, flags=_re.UNICODE)).strip("-")
+            _sl = _re.sub(
+                r"-+", "-", _re.sub(r"[^\w-]+", "-", _sl, flags=_re.UNICODE)
+            ).strip("-")
             _leaf = str(_pathstr).rstrip("/").split("/")[-1]
             if _sl not in [t[0] for t in _tags]:
                 _tags.append((_sl, _tree, str(_pathstr), _leaf))
@@ -577,10 +724,17 @@ def build(folder):
             _chips = "".join(
                 f'<span id="{_sl}" class=menuanchor-tag data-tree="{esc(_tree)}" title="{esc(_tree)}: {esc(_path)}">'
                 f'#{esc(_leaf) if _tree == "menu" else esc(_tree) + " · " + esc(_leaf)}</span>'
-                for (_sl, _tree, _path, _leaf) in _tags)
-            blk = (f'<div class=menuanchor data-bi="{_bi}" data-anchors="{" ".join(t[0] for t in _tags)}" style="scroll-margin-top:14px">'
-                   f'<div class=menuanchor-tags>{_chips}</div>{blk}</div>')
-        elif blk and isinstance(b, dict) and any(isinstance(x, str) and x.strip() for x in (b.get("items") or [])):
+                for (_sl, _tree, _path, _leaf) in _tags
+            )
+            blk = (
+                f'<div class=menuanchor data-bi="{_bi}" data-anchors="{" ".join(t[0] for t in _tags)}" style="scroll-margin-top:14px">'
+                f"<div class=menuanchor-tags>{_chips}</div>{blk}</div>"
+            )
+        elif (
+            blk
+            and isinstance(b, dict)
+            and any(isinstance(x, str) and x.strip() for x in (b.get("items") or []))
+        ):
             # 태그 없이 항목 id(items — tnd_…·itm_…)로 이은 블록: 해시태그 칩은 없고(보이는 이름이 없다) 같은 상자·data-bi 만 —
             # 셸 뷰어가 이 블록에 연결 행(서버 GET /api/report/links 의 그 블록)을 붙이고, 트리 노드 상세가 이 부분을 찾는다.
             blk = f'<div class=menuanchor data-bi="{_bi}" data-anchors="" style="scroll-margin-top:14px">{blk}</div>'
@@ -588,24 +742,38 @@ def build(folder):
 
     if ba.get("before") and ba.get("after"):
         P.append(H2("Before / After — 같은 행동, 무엇이 바뀌나") + "<div class=ba>")
-        for side, label in (("before", "BEFORE · 행동 전"), ("after", "AFTER · 행동 후")):
+        for side, label in (
+            ("before", "BEFORE · 행동 전"),
+            ("after", "AFTER · 행동 후"),
+        ):
             r = ba[side]
             tlab = f" (t≈{esc(r['t'])}s)" if r.get("t") is not None else ""
-            P.append(f"<div class='col {side}'><div class=tag>{label}{tlab}</div>"
-                     f"{_img('img/'+r['file'])}<div class=cap>{esc(r['caption'])}</div></div>")
+            P.append(
+                f"<div class='col {side}'><div class=tag>{label}{tlab}</div>"
+                f"{_img('img/'+r['file'])}<div class=cap>{esc(r['caption'])}</div></div>"
+            )
         P.append("</div>")
         if ba.get("changed"):
-            P.append(f"<div class=changed><b>무엇이 바뀌었나:</b> {esc(ba['changed'])}</div>")
+            P.append(
+                f"<div class=changed><b>무엇이 바뀌었나:</b> {esc(ba['changed'])}</div>"
+            )
 
     tbl = spec.get("table")
     if tbl:
-        P.append(H2(tbl.get('title', '표')) + "<table class=al>")
+        P.append(H2(tbl.get("title", "표")) + "<table class=al>")
         if tbl.get("columns"):
-            P.append("<tr>" + "".join(f"<th>{esc(c)}</th>" for c in tbl["columns"]) + "</tr>")
+            P.append(
+                "<tr>" + "".join(f"<th>{esc(c)}</th>" for c in tbl["columns"]) + "</tr>"
+            )
         for row in tbl.get("rows", []):
             cells = "".join(
-                (f"<td class='{esc(c[1])}'>{esc(c[0])}</td>" if isinstance(c, (list, tuple)) else f"<td>{esc(c)}</td>")
-                for c in row)
+                (
+                    f"<td class='{esc(c[1])}'>{esc(c[0])}</td>"
+                    if isinstance(c, (list, tuple))
+                    else f"<td>{esc(c)}</td>"
+                )
+                for c in row
+            )
             P.append("<tr>" + cells + "</tr>")
         P.append("</table>")
         if tbl.get("note"):
@@ -614,9 +782,15 @@ def build(folder):
     if spec.get("timeline"):
         P.append(H2("타임라인 — 각 프레임에 실제로 보이는 것") + "<div class=tl>")
         for r in spec["timeline"]:
-            tspan = f"<span class=t>t≈{esc(r['t'])}s</span>" if r.get("t") is not None else ""
-            P.append(f"<div class=row>{tspan}"
-                     f"{_img('img/'+r['file'])}<div class=what>{esc(r['what'])}</div></div>")
+            tspan = (
+                f"<span class=t>t≈{esc(r['t'])}s</span>"
+                if r.get("t") is not None
+                else ""
+            )
+            P.append(
+                f"<div class=row>{tspan}"
+                f"{_img('img/'+r['file'])}<div class=what>{esc(r['what'])}</div></div>"
+            )
         P.append("</div>")
 
     # Investigation chain — the SaaS-agnostic reasoning narrative, in ORDER:
@@ -628,13 +802,23 @@ def build(folder):
     inv = spec.get("investigation") or spec.get("evidence")
     if inv:
         P.append(H2(inv.get("title", "조사 과정 — 공식문서 참조 → 직접 실증")))
-        P.append(f"<div class=invintro>{esc(inv.get('intro', '먼저 리뷰 대상 SaaS 공식문서에서 방법을 찾아본다(참조 — 문서가 틀릴 수 있으니 진실이 아니다). 그 판단을 가지고 직접 실행해 캡처로 실증한다. 진실은 직접 실행 캡처다.'))}</div>")
-        BADGE = {"doc": "📄 공식문서 (참조 · 틀릴 수 있음)", "think": "💡 판단", "test": "✅ 직접 실증 (진실)"}
-        P.append("<div class=inv>")  # ★ 래퍼 — 이게 없으면 .inv img{width:100%} 등 CSS 가 안 먹어 큰 캡처가 화면을 뚫는다
+        P.append(
+            f"<div class=invintro>{esc(inv.get('intro', '먼저 리뷰 대상 SaaS 공식문서에서 방법을 찾아본다(참조 — 문서가 틀릴 수 있으니 진실이 아니다). 그 판단을 가지고 직접 실행해 캡처로 실증한다. 진실은 직접 실행 캡처다.'))}</div>"
+        )
+        BADGE = {
+            "doc": "📄 공식문서 (참조 · 틀릴 수 있음)",
+            "think": "💡 판단",
+            "test": "✅ 직접 실증 (진실)",
+        }
+        P.append(
+            "<div class=inv>"
+        )  # ★ 래퍼 — 이게 없으면 .inv img{width:100%} 등 CSS 가 안 먹어 큰 캡처가 화면을 뚫는다
         for s in inv.get("steps", []):
             kind = s.get("kind", "test")
             cls = kind if kind in ("doc", "think", "test") else "test"
-            P.append(f"<div class='step {cls}'><span class=badge>{BADGE.get(kind, '✅ 실증')}</span>")
+            P.append(
+                f"<div class='step {cls}'><span class=badge>{BADGE.get(kind, '✅ 실증')}</span>"
+            )
             if s.get("file"):
                 # 🚨 step 의 file 은 **확장자 없는 label**(증적 라벨)로 오는 게 흔하다.
                 #    전엔 정확히 그 이름만 찾아 .jpg 로 저장된 실제 캡처를 못 보고 "⚠️ 캡처 없음" 을
@@ -644,14 +828,18 @@ def build(folder):
                     P.append(_img("img/" + _hit))
                 else:
                     what = "공식문서" if kind == "doc" else "실증"
-                    P.append(f"<div class=invmiss><b>⚠️ 캡처 없음:</b> <code>img/{esc(s['file'])}</code> — "
-                             f"{what} 캡처가 있어야 근거로 인정. 없으면 추정.</div>")
+                    P.append(
+                        f"<div class=invmiss><b>⚠️ 캡처 없음:</b> <code>img/{esc(s['file'])}</code> — "
+                        f"{what} 캡처가 있어야 근거로 인정. 없으면 추정.</div>"
+                    )
             P.append(f"<div class=body>{esc(s.get('caption') or s.get('text') or '')}")
             # 증거 3종 세트: 캡처(위 img) + 화면 글귀(found, 인용) + 왜 증명하는지(proves).
             if s.get("found"):
                 P.append(f"<div class=quote>“{esc(s['found'])}”</div>")
             if s.get("proves"):
-                P.append(f"<div class=res>🎯 이 글귀가 증명하는 것: {esc(s['proves'])}</div>")
+                P.append(
+                    f"<div class=res>🎯 이 글귀가 증명하는 것: {esc(s['proves'])}</div>"
+                )
             if s.get("result"):
                 P.append(f"<div class=res>✔ 직접 해본 결과: {esc(s['result'])}</div>")
             if s.get("source"):
@@ -674,7 +862,9 @@ def build(folder):
                 P.append(f"<div class=acmd>{esc(b['caption'])}</div>")
             cmd = b.get("cmd", "")
             out = _run_analysis(cmd, repo)
-            P.append(f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(out)}</pre>")
+            P.append(
+                f"<pre class=term><span class=p>$ {esc(cmd)}</span>\n{esc(out)}</pre>"
+            )
 
     if spec.get("why"):
         P.append(H2("결과 요약") + "<ul class=why>")
@@ -686,8 +876,10 @@ def build(folder):
         P += [f"<li>{esc(x)}</li>" for x in spec["failure_angle"]]
         P.append("</ul>")
 
-    P.append("<div class=note>전/후 화면은 녹화 드라이버가 그 순간 실제 캡처한 스크린샷(또는 영상에서 추출한 프레임)이고, "
-             "bash 분석 출력은 빌드 시 실제 아카이브에서 집계된 것입니다. 캡처에 없는 내용은 이 리포트에 적지 않았습니다.</div>")
+    P.append(
+        "<div class=note>전/후 화면은 녹화 드라이버가 그 순간 실제 캡처한 스크린샷(또는 영상에서 추출한 프레임)이고, "
+        "bash 분석 출력은 빌드 시 실제 아카이브에서 집계된 것입니다. 캡처에 없는 내용은 이 리포트에 적지 않았습니다.</div>"
+    )
 
     P.append("</div>")  # /container
 
@@ -695,15 +887,23 @@ def build(folder):
     open(out, "w", encoding="utf-8").write("".join(P))
     # 🚨 embedded = **실제로 들어간 수**(참조 총수 - 누락). 전엔 참조 총수를 embedded 로 찍어
     #    누락이 있어도 다 들어간 것처럼 보였다.
-    print(f"✓ {out}  ({len(refs) - len(miss)} frames embedded" + (f", {len(miss)} MISSING" if miss else "") + ")")
+    print(
+        f"✓ {out}  ({len(refs) - len(miss)} frames embedded"
+        + (f", {len(miss)} MISSING" if miss else "")
+        + ")"
+    )
 
     # ── 아카이브 zip (report.html 쓴 *뒤* 라야 zip 에 최신 report.html 이 들어간다) ──
     # 내용 = report.html · report.docx(.html) · img/ · report.json + 원본 flow 아카이브. 다운로드는
     # operator 카드의 ⬇ 버튼에서 '세션-리포트.zip' 이름으로 떨어진다(본문 인라인 링크 없음).
     build_archive_zip(folder, an, repo)
     # 빌드 결과(구조화) — operator/MCP 는 이 파일로 발행 가부를 정한다(R13: 분석 실패가 성공으로 안 보이게).
-    result = {"ok": not miss and not _ANALYSIS_FAILURES, "missing_frames": list(miss),
-              "analysis_failures": list(_ANALYSIS_FAILURES), "frames": len(refs) - len(miss)}
+    result = {
+        "ok": not miss and not _ANALYSIS_FAILURES,
+        "missing_frames": list(miss),
+        "analysis_failures": list(_ANALYSIS_FAILURES),
+        "frames": len(refs) - len(miss),
+    }
     with open(os.path.join(folder, "build_result.json"), "w", encoding="utf-8") as fh:
         json.dump(result, fh, ensure_ascii=False, indent=1)
     if _ANALYSIS_FAILURES:
@@ -712,9 +912,12 @@ def build(folder):
             print(f"    $ {f_['cmd']}  → {f_['error']}")
     # 세션 카드목록 HTML 재생성(전체 다운로드 zip 에 '보고서목록.html' 로 포함됨).
     # 스테이징(공개 루트 밖 runs/report-staging) 빌드는 색인하지 않는다 — 발행 후 operator 가 공개 세션 폴더를 색인한다(R10).
-    if os.sep + "report-staging" + os.sep not in os.path.abspath(folder) and not os.path.basename(folder).startswith("."):
+    if os.sep + "report-staging" + os.sep not in os.path.abspath(
+        folder
+    ) and not os.path.basename(folder).startswith("."):
         try:
             from session_index import build_session_index
+
             build_session_index(os.path.dirname(folder))
         except Exception as e:
             print(f"  (session index skip: {e})")
@@ -723,18 +926,23 @@ def build(folder):
 
 def build_archive_zip(folder, an, repo):
     import zipfile
+
     zpath = os.path.join(folder, "archive.zip")
     try:
         with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
             for root, _, files in os.walk(folder, followlinks=False):
                 for fn in files:
-                    if fn == "archive.zip":          # 자기 자신만 제외
+                    if fn == "archive.zip":  # 자기 자신만 제외
                         continue
                     fp = os.path.join(root, fn)
-                    if os.path.islink(fp):            # 리포트 폴더 안 symlink 는 싣지 않는다(밖의 파일이 ZIP 에 들어옴)
+                    if os.path.islink(
+                        fp
+                    ):  # 리포트 폴더 안 symlink 는 싣지 않는다(밖의 파일이 ZIP 에 들어옴)
                         continue
-                    z.write(fp, os.path.relpath(fp, folder))   # report.html·report.docx(.html)·img/·report.json
-            if an and an.get("archive"):                        # 원본 flow 아카이브(있으면)
+                    z.write(
+                        fp, os.path.relpath(fp, folder)
+                    )  # report.html·report.docx(.html)·img/·report.json
+            if an and an.get("archive"):  # 원본 flow 아카이브(있으면)
                 # 2026-09-06 R04: archive 는 <repo>/runs/envs 아래여야만 넣는다. 절대경로·'..'·symlink 탈출은
                 # 무시(예전엔 os.path.join 이 절대경로면 repo 를 버려 임의 디렉터리가 공개 ZIP 에 들어갔다).
                 arc = str(an["archive"])
@@ -743,31 +951,69 @@ def build_archive_zip(folder, an, repo):
                 # 2026-09-07 재검토: runs/envs 아래엔 terraform 상태·변수(비밀)도 있다. **캡처 아카이브 폴더**
                 # (runs/envs/<env>/captures/archives/<folder>) 정확히 그 깊이만 허용하고, 데이터 파일 확장자만 넣는다.
                 parts = arc.replace("\\", "/").strip("/").split("/")
-                shape_ok = len(parts) == 6 and parts[:2] == ["runs", "envs"] and parts[3:5] == ["captures", "archives"]
+                shape_ok = (
+                    len(parts) == 6
+                    and parts[:2] == ["runs", "envs"]
+                    and parts[3:5] == ["captures", "archives"]
+                )
                 # 2026-09-10 재검토: 폴더 자체가 symlink(captures/archives/link → terraform)면 문자열 shape 는 통과하고
                 # realpath 는 envs 아래라 통과했다. **실제 경로**도 같은 shape 여야 한다(경로 어디에도 symlink 불허).
-                real_parts = os.path.relpath(ap, os.path.realpath(repo)).replace("\\", "/").split("/")
+                real_parts = (
+                    os.path.relpath(ap, os.path.realpath(repo))
+                    .replace("\\", "/")
+                    .split("/")
+                )
                 real_shape_ok = real_parts == parts
-                ok_arc = (not os.path.isabs(arc) and ".." not in parts and shape_ok and real_shape_ok
-                          and ap.startswith(envs_root + os.sep) and os.path.isdir(ap) and not os.path.islink(os.path.join(repo, arc)))
+                ok_arc = (
+                    not os.path.isabs(arc)
+                    and ".." not in parts
+                    and shape_ok
+                    and real_shape_ok
+                    and ap.startswith(envs_root + os.sep)
+                    and os.path.isdir(ap)
+                    and not os.path.islink(os.path.join(repo, arc))
+                )
                 if not ok_arc:
-                    print(f"  (archive skip: runs/envs/<env>/captures/archives/<folder> 형태가 아니거나 없음 {arc!r})")
-                ARCHIVE_EXT = (".json", ".txt", ".har", ".log", ".md", ".csv", ".tsv", ".jsonl")
+                    print(
+                        f"  (archive skip: runs/envs/<env>/captures/archives/<folder> 형태가 아니거나 없음 {arc!r})"
+                    )
+                ARCHIVE_EXT = (
+                    ".json",
+                    ".txt",
+                    ".har",
+                    ".log",
+                    ".md",
+                    ".csv",
+                    ".tsv",
+                    ".jsonl",
+                )
                 MAX_FILES, MAX_BYTES = 5000, 500 * 1024 * 1024
                 n_files = n_bytes = 0
                 if ok_arc:
                     for root, dirs, files in os.walk(ap, followlinks=False):
                         for fn in files:
                             fp = os.path.join(root, fn)
-                            if os.path.islink(fp) or not os.path.realpath(fp).startswith(ap + os.sep):
+                            if os.path.islink(fp) or not os.path.realpath(
+                                fp
+                            ).startswith(ap + os.sep):
                                 continue
-                            if not fn.lower().endswith(ARCHIVE_EXT) or "tfstate" in fn or fn.endswith(".tfvars"):
+                            if (
+                                not fn.lower().endswith(ARCHIVE_EXT)
+                                or "tfstate" in fn
+                                or fn.endswith(".tfvars")
+                            ):
                                 continue
-                            n_files += 1; n_bytes += os.path.getsize(fp)
+                            n_files += 1
+                            n_bytes += os.path.getsize(fp)
                             if n_files > MAX_FILES or n_bytes > MAX_BYTES:
-                                print(f"  (archive truncated at {n_files} files / {n_bytes} bytes)")
+                                print(
+                                    f"  (archive truncated at {n_files} files / {n_bytes} bytes)"
+                                )
                                 break
-                            z.write(fp, os.path.join("flow-archive", os.path.relpath(fp, ap)))
+                            z.write(
+                                fp,
+                                os.path.join("flow-archive", os.path.relpath(fp, ap)),
+                            )
                         else:
                             continue
                         break
@@ -777,10 +1023,14 @@ def build_archive_zip(folder, an, repo):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3 or sys.argv[1] not in ("grab", "build"):
-        sys.exit("usage: report.py grab <folder> <t1> <t2> ...  |  report.py build <folder>")
+        sys.exit(
+            "usage: report.py grab <folder> <t1> <t2> ...  |  report.py build <folder>"
+        )
     cmd, folder = sys.argv[1], os.path.abspath(sys.argv[2])
     if cmd == "grab":
         grab(folder, [float(x) if "." in x else int(x) for x in sys.argv[3:]])
     else:
         r = build(folder)
-        sys.exit(0 if r.get("ok") else 3)   # 3 = 프레임 누락/분석 실패(operator 가 발행 차단)
+        sys.exit(
+            0 if r.get("ok") else 3
+        )  # 3 = 프레임 누락/분석 실패(operator 가 발행 차단)

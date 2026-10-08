@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -37,6 +38,22 @@ def tools_from_source(path: Path) -> list[str]:
         if any(getattr(d, "attr", None) == "tool" for d in node.decorator_list):
             names.append(node.name)
     return sorted(names)
+
+
+def provenance(src: Path) -> dict:
+    """출처 = 소스가 든 git 저장소 이름 + 그 안 경로 조각.
+
+    절대 경로를 박지 않는다 — 공개 저장소에 만든 사람 PC 의 홈 경로가 남고, 경로 조각이
+    50자 넘게 이어지면 SAST BASE64 규칙에도 걸린다(경로는 비밀값이 아니다). 조각을 목록으로
+    두면 한 줄에 한 조각씩 적혀 둘 다 사라진다."""
+    try:
+        top = subprocess.run(["git", "-C", str(src.parent), "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True, timeout=30).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        top = ""
+    if top:
+        return {"repo": Path(top).name, "path": list(src.resolve().relative_to(Path(top).resolve()).parts)}
+    return {"repo": "", "path": [src.name]}
 
 
 def main() -> int:
@@ -66,7 +83,7 @@ def main() -> int:
 
     doc = {
         # 이 목록이 **어디서** 왔는지 남긴다 — 출처 없는 목록은 다음 사람이 검증할 수 없다.
-        "generated_from": str(src),
+        "generated_from": provenance(src),
         "generated_at": args.stamp or old.get("generated_at", ""),
         "note": "진실원은 살아있는 서버다. 이 파일은 그 서버 소스에서 뜬 스냅샷이고, "
                 "카탈로그 카드는 여기서만 값을 가져온다.",

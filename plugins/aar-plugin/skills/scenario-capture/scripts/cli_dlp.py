@@ -8,12 +8,16 @@ never reaches Anthropic on a 451.
 
 Usage: cli_dlp.py <env>/<archive-folder>
 """
+
 import sys, os, glob, json
-from archive_common import UA_CLI, archive_dir_from_argv, repo_root, resolve  # 공통(중복 제거)
+from archive_common import (
+    UA_CLI,
+    archive_dir_from_argv,
+    repo_root,
+    resolve,
+)  # 공통(중복 제거)
 
 UA = UA_CLI
-
-
 
 
 def main():
@@ -43,10 +47,14 @@ def main():
         print("  %s" % body)
     print("\n=== CLI control requests that PASSED (no sensitive shape in body) ===")
     import collections
+
     c = collections.Counter(passed)
     for ep, n in c.most_common():
         print("  %3d x 200  %s" % (n, ep))
-    print("\nsummary: %d blocked(451) flows, %d passed(200) flows" % (len(blocked), len(passed)))
+    print(
+        "\nsummary: %d blocked(451) flows, %d passed(200) flows"
+        % (len(blocked), len(passed))
+    )
 
 
 if __name__ == "__main__":
