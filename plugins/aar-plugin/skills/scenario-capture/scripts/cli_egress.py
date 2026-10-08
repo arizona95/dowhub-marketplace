@@ -7,12 +7,16 @@ prints the destination-host table and the api.anthropic.com endpoint breakdown.
 
 Usage: cli_egress.py <env>/<archive-folder>
 """
+
 import sys, os, glob, json, collections
-from archive_common import UA_CLI, archive_dir_from_argv, repo_root, resolve  # 공통(중복 제거)
+from archive_common import (
+    UA_CLI,
+    archive_dir_from_argv,
+    repo_root,
+    resolve,
+)  # 공통(중복 제거)
 
 UA_MARK = UA_CLI
-
-
 
 
 def main():

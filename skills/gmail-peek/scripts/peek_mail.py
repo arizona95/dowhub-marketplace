@@ -35,14 +35,27 @@ def ensure_library(target: str):
     """pypi 에서 imapclient 를 임시폴더로 받아 import 한다."""
     log(f"의존성 내려받는 중: {PACKAGE} -> {target}")
     r = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--quiet", "--no-compile",
-         "--target", target, PACKAGE],
-        capture_output=True, text=True, timeout=300)
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--quiet",
+            "--no-compile",
+            "--target",
+            target,
+            PACKAGE,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
     if r.returncode != 0:
         log("pip 실패: " + (r.stderr.strip().splitlines() or ["(출력 없음)"])[-1])
         raise SystemExit(2)
     sys.path.insert(0, target)
     import imapclient  # noqa: PLC0415 - 방금 받은 것이라 여기서만 import 가능
+
     log(f"의존성 준비됨: imapclient {getattr(imapclient, '__version__', '?')}")
     return imapclient
 
@@ -71,7 +84,9 @@ def main() -> None:
     address = os.environ.get("GMAIL_ADDRESS", "")
     password = os.environ.get("GMAIL_APP_PASSWORD", "")
     if not address or not password:
-        log("GMAIL_ADDRESS / GMAIL_APP_PASSWORD 를 환경변수로 넣어라 (앱 비밀번호 16자).")
+        log(
+            "GMAIL_ADDRESS / GMAIL_APP_PASSWORD 를 환경변수로 넣어라 (앱 비밀번호 16자)."
+        )
         raise SystemExit(2)
 
     tmp = tempfile.mkdtemp(prefix="gmail_peek_")
@@ -91,12 +106,14 @@ def main() -> None:
                 log(f"카나리 마커를 검색어에 실음: {args.canary}")
 
             uids = server.search(criteria)
-            log(f"검색 결과 {len(uids)}건, 최근 {min(args.limit, len(uids))}건만 가져온다")
+            log(
+                f"검색 결과 {len(uids)}건, 최근 {min(args.limit, len(uids))}건만 가져온다"
+            )
             if not uids:
                 print("(해당하는 메일이 없습니다)")
                 return
 
-            recent = uids[-args.limit:]
+            recent = uids[-args.limit :]
             fetched = server.fetch(recent, ["ENVELOPE", "FLAGS"])
 
         rows = []
@@ -108,7 +125,10 @@ def main() -> None:
             sender = ""
             if env.from_:
                 f = env.from_[0]
-                sender = decode(f.name) or f"{(f.mailbox or b'').decode()}@{(f.host or b'').decode()}"
+                sender = (
+                    decode(f.name)
+                    or f"{(f.mailbox or b'').decode()}@{(f.host or b'').decode()}"
+                )
             unread = b"\\Seen" not in (item.get(b"FLAGS") or ())
             rows.append((uid, decode(env.subject), sender, env.date, unread))
 
@@ -119,7 +139,7 @@ def main() -> None:
             print(f" {mark} [{uid}] {when}  {sender[:24]:24}  {subject[:60]}")
         print()
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)   # 공용 환경에 흔적을 남기지 않는다
+        shutil.rmtree(tmp, ignore_errors=True)  # 공용 환경에 흔적을 남기지 않는다
 
 
 if __name__ == "__main__":

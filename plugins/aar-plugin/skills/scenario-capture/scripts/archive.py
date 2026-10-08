@@ -22,6 +22,7 @@ Methodology (what the scenarios now use):
 
 <archive> may be a path or "<env>/<folder>" (resolved under runs/envs).
 """
+
 import sys, os, json, glob, re, urllib.request, collections, signal
 
 # 분석 cmd 는 리포트에서 `archive.py ... | head -N` / `| grep` 처럼 파이프된다.
@@ -38,7 +39,9 @@ API = os.environ.get("AGENTREVIEW_API", "http://localhost:8080")
 
 def _repo_root():
     # .../SDSreviewBLUE/aar-plugin/skills/scenario-capture/scripts/archive.py
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
+    )
 
 
 def _resolve(archive):
@@ -48,7 +51,9 @@ def _resolve(archive):
     # allow "<env>/<folder>" -> runs/envs/<env>/captures/archives/<folder>
     if not os.path.isdir(p) and "/" in archive:
         env, folder = archive.split("/", 1)
-        p = os.path.join(_repo_root(), "runs", "envs", env, "captures", "archives", folder)
+        p = os.path.join(
+            _repo_root(), "runs", "envs", env, "captures", "archives", folder
+        )
     if not os.path.isdir(p):
         sys.exit(f"archive not found: {archive}  (looked under runs/envs)")
     return p
@@ -77,7 +82,7 @@ def _headers_items(h):
     if isinstance(h, dict):
         return list(h.items())
     out = []
-    for it in (h or []):
+    for it in h or []:
         if isinstance(it, (list, tuple)) and len(it) == 2:
             out.append((str(it[0]), str(it[1])))
         elif isinstance(it, dict):
@@ -133,15 +138,28 @@ def cmd_status(archive):
 
 def cmd_grep(archive, pat, field="any"):
     rx = re.compile(pat, re.I)
-    fields = [field] if field != "any" else ["url", "host", "req_body", "resp_body", "req_headers", "resp_headers"]
+    fields = (
+        [field]
+        if field != "any"
+        else ["url", "host", "req_body", "resp_body", "req_headers", "resp_headers"]
+    )
     n = 0
     for d in _flows(archive):
-        blob = " ".join(json.dumps(d.get(f), ensure_ascii=False) if isinstance(d.get(f), (dict, list)) else str(d.get(f, "")) for f in fields)
+        blob = " ".join(
+            (
+                json.dumps(d.get(f), ensure_ascii=False)
+                if isinstance(d.get(f), (dict, list))
+                else str(d.get(f, ""))
+            )
+            for f in fields
+        )
         m = rx.search(blob)
         if m:
             n += 1
-            ctx = blob[max(0, m.start() - 40):m.end() + 60].replace("\n", " ")
-            print(f"  {d.get('status')} {d.get('method'):4} {d.get('host')}{str(d.get('path',''))[:40]}")
+            ctx = blob[max(0, m.start() - 40) : m.end() + 60].replace("\n", " ")
+            print(
+                f"  {d.get('status')} {d.get('method'):4} {d.get('host')}{str(d.get('path',''))[:40]}"
+            )
             print(f"       …{ctx}…")
     print(f"-- {n} match(es) for /{pat}/ in {field}")
 
@@ -154,7 +172,9 @@ def cmd_header(archive, name):
             for k, v in _headers_items(d.get(side)):
                 if k.lower() == nl:
                     n += 1
-                    print(f"  [{side.split('_')[0]}] {d.get('status')} {d.get('method'):4} {d.get('host')} :: {k}: {v}")
+                    print(
+                        f"  [{side.split('_')[0]}] {d.get('status')} {d.get('method'):4} {d.get('host')} :: {k}: {v}"
+                    )
     print(f"-- {n} flow-header occurrence(s) of '{name}'")
 
 
@@ -167,11 +187,18 @@ def cmd_blocked(archive):
         body = str(d.get("resp_body", ""))
         rule = re.search(r'"rule_name"\s*:\s*"([^"]+)"', body)
         ec = re.search(r'"error_code"\s*:\s*"([^"]+)"', body)
-        blk = re.search(r'X-AgentReview-Block', json.dumps(d.get("resp_headers"), ensure_ascii=False), re.I)
+        blk = re.search(
+            r"X-AgentReview-Block",
+            json.dumps(d.get("resp_headers"), ensure_ascii=False),
+            re.I,
+        )
         tag = []
-        if rule: tag.append(f"rule_name={rule.group(1)}")
-        if ec: tag.append(f"error_code={ec.group(1)}")
-        if blk: tag.append("X-AgentReview-Block")
+        if rule:
+            tag.append(f"rule_name={rule.group(1)}")
+        if ec:
+            tag.append(f"error_code={ec.group(1)}")
+        if blk:
+            tag.append("X-AgentReview-Block")
         n += 1
         print(f"  {st} {d.get('method'):4} {d.get('host')}{str(d.get('path',''))[:45]}")
         if tag:
@@ -202,18 +229,24 @@ def _sse_text(body):
 
 
 def cmd_convo(archive):
-    rx = re.compile(r"completion|/v1/messages|/v1/chat|chat_conversations.*completion", re.I)
+    rx = re.compile(
+        r"completion|/v1/messages|/v1/chat|chat_conversations.*completion", re.I
+    )
     n = 0
     for d in _flows(archive):
         if not rx.search(str(d.get("url", "")) + str(d.get("path", ""))):
             continue
         n += 1
-        print(f"\n● {d.get('method')} {d.get('host')}{d.get('path')}  [{d.get('status')}]")
+        print(
+            f"\n● {d.get('method')} {d.get('host')}{d.get('path')}  [{d.get('status')}]"
+        )
         # prompt
         prompt = ""
         try:
             j = json.loads(d.get("req_body") or "{}")
-            prompt = j.get("prompt") or json.dumps(j.get("messages", j), ensure_ascii=False)
+            prompt = j.get("prompt") or json.dumps(
+                j.get("messages", j), ensure_ascii=False
+            )
         except Exception:
             prompt = str(d.get("req_body", ""))
         print(f"  PROMPT (req_body, 복호화 평문): {prompt[:300]}")
@@ -228,7 +261,11 @@ def cmd_tools(archive):
     mcp_opt = 0
     mcp_rpc, conn, inchat = [], [], []
     for d in _flows(archive):
-        url, path, host = str(d.get("url", "")), str(d.get("path", "")), d.get("host", "")
+        url, path, host = (
+            str(d.get("url", "")),
+            str(d.get("path", "")),
+            d.get("host", ""),
+        )
         ts = str(d.get("time") or "")[11:19] or "?"
         if host == "mcp-proxy.anthropic.com" or "/v1/mcp/" in path:
             if d.get("method") == "OPTIONS":
@@ -239,15 +276,27 @@ def cmd_tools(archive):
             try:
                 j = json.loads(d.get("req_body") or "{}")
                 meth = j.get("method", "")
-                client = (((j.get("params") or {}).get("clientInfo")) or {}).get("name", "")
+                client = (((j.get("params") or {}).get("clientInfo")) or {}).get(
+                    "name", ""
+                )
             except Exception:
                 pass
             m = re.search(r'"error_code"\s*:\s*"([^"]+)"', str(d.get("resp_body", "")))
-            if m: ec = m.group(1)
+            if m:
+                ec = m.group(1)
             mcp_rpc.append((ts, d.get("status"), srv, meth, client, ec))
         elif re.search(r"/v1/code|/github|/connector|integration", url + path, re.I):
-            conn.append((ts, d.get("status"), d.get("method"), host, path[:46],
-                         str(d.get("req_body", ""))[:140], str(d.get("resp_body", ""))[:140]))
+            conn.append(
+                (
+                    ts,
+                    d.get("status"),
+                    d.get("method"),
+                    host,
+                    path[:46],
+                    str(d.get("req_body", ""))[:140],
+                    str(d.get("resp_body", ""))[:140],
+                )
+            )
         if re.search(r"completion|/v1/messages", url + path, re.I):
             blob = str(d.get("req_body", "")) + str(d.get("resp_body", ""))
             for kind in ("tool_use", "tool_result"):
@@ -255,16 +304,22 @@ def cmd_tools(archive):
                     inchat.append((ts, kind, mm.group(0)[:130]))
 
     print("【 MCP (Model Context Protocol) — 프록시가 본 것 】")
-    print(f"  · OPTIONS preflight {mcp_opt}건 — 앱이 등록된 MCP 서버 다수를 탐침(서버 ID 전수 노출)")
+    print(
+        f"  · OPTIONS preflight {mcp_opt}건 — 앱이 등록된 MCP 서버 다수를 탐침(서버 ID 전수 노출)"
+    )
     print(f"  · JSON-RPC 호출 {len(mcp_rpc)}건 (메서드·클라이언트·인증결과까지 평문):")
     for ts, st, srv, meth, cl, ec in mcp_rpc[:18]:
-        print(f"      {ts} {st} {srv} method={meth or '-'} client={cl or '-'}{('  → '+ec) if ec else ''}")
+        print(
+            f"      {ts} {st} {srv} method={meth or '-'} client={cl or '-'}{('  → '+ec) if ec else ''}"
+        )
 
     print("\n【 Connector 호출 — 요청 인자/결과 평문 】")
     for ts, st, meth, host, path, rb, sb in conn[:6]:
         print(f"  {ts} {st} {meth} {host}{path}")
-        if rb.strip(): print(f"      req : {rb}")
-        if sb.strip(): print(f"      resp: {sb}")
+        if rb.strip():
+            print(f"      req : {rb}")
+        if sb.strip():
+            print(f"      resp: {sb}")
     print(f"  ({len(conn)} connector flow)")
 
     print("\n【 In-chat tool_use / tool_result (completion 본문 내부) 】")
@@ -272,17 +327,32 @@ def cmd_tools(archive):
         for ts, kind, snip in inchat[:10]:
             print(f"  {ts} {kind}: {snip}")
     else:
-        print("  (이 캡처엔 0건 — 모델이 채팅 중 직접 툴을 호출한 completion 이 없었음.")
-        print("   그런 대화를 캡처하면 tool_use/tool_result 도 동일하게 평문으로 잡힘.)")
+        print(
+            "  (이 캡처엔 0건 — 모델이 채팅 중 직접 툴을 호출한 completion 이 없었음."
+        )
+        print(
+            "   그런 대화를 캡처하면 tool_use/tool_result 도 동일하게 평문으로 잡힘.)"
+        )
 
 
 def cmd_export(env, folder):
     body = json.dumps({"folder": folder}).encode()
     req = urllib.request.Request(
         f"{API}/api/v1/envs/{env}/network-proxy/api/export",
-        data=body, headers={"Content-Type": "application/json"}, method="POST")
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
     r = json.load(urllib.request.urlopen(req, timeout=20))
-    path = os.path.join(_repo_root(), "runs", "envs", env, "captures", "archives", r.get("folder", folder))
+    path = os.path.join(
+        _repo_root(),
+        "runs",
+        "envs",
+        env,
+        "captures",
+        "archives",
+        r.get("folder", folder),
+    )
     print(f"archived {r.get('count')} flows → {path}")
 
 
@@ -291,9 +361,17 @@ if __name__ == "__main__":
     if not a:
         sys.exit(__doc__)
     cmd, rest = a[0], a[1:]
-    fn = {"export": cmd_export, "hosts": cmd_hosts, "hosts_tsv": cmd_hosts_tsv,
-          "status": cmd_status, "grep": cmd_grep, "header": cmd_header,
-          "blocked": cmd_blocked, "convo": cmd_convo, "tools": cmd_tools}.get(cmd)
+    fn = {
+        "export": cmd_export,
+        "hosts": cmd_hosts,
+        "hosts_tsv": cmd_hosts_tsv,
+        "status": cmd_status,
+        "grep": cmd_grep,
+        "header": cmd_header,
+        "blocked": cmd_blocked,
+        "convo": cmd_convo,
+        "tools": cmd_tools,
+    }.get(cmd)
     if not fn:
         sys.exit(__doc__)
     fn(*rest)

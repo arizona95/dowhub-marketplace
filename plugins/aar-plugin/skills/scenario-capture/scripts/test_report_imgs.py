@@ -8,6 +8,7 @@
 
 실행: python3 test_report_imgs.py   (성공 시 'ALL PASS', 실패 시 non-zero exit)
 """
+
 import json, os, re, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,20 +18,25 @@ JPEG_1PX = bytes.fromhex(
     "ffd8ffe000104a46494600010100000100010000ffdb004300ffffffffffffffffffffffffffff"
     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     "ffffffffffffffffffffffffffffffffffc2000b080001000101011100ffc40014000100000000"
-    "00000000000000000000000009ffda0008010100013f10")
+    "00000000000000000000000009ffda0008010100013f10"
+)
 
 FAILS = []
 
 
 def check(name, cond, detail=""):
-    print(f"  {'PASS' if cond else 'FAIL'}  {name}" + (f"  — {detail}" if detail and not cond else ""))
+    print(
+        f"  {'PASS' if cond else 'FAIL'}  {name}"
+        + (f"  — {detail}" if detail and not cond else "")
+    )
     if not cond:
         FAILS.append(name)
 
 
 def build(folder):
-    r = subprocess.run([sys.executable, REPORT, "build", folder],
-                       capture_output=True, text=True)
+    r = subprocess.run(
+        [sys.executable, REPORT, "build", folder], capture_output=True, text=True
+    )
     return r.stdout + r.stderr
 
 
@@ -40,8 +46,7 @@ def make_case(tmp, files, steps):
     for fn in files:
         with open(os.path.join(tmp, "img", fn), "wb") as f:
             f.write(JPEG_1PX)
-    spec = {"title": "t", "summary": "s", "env": "e",
-            "investigation": {"steps": steps}}
+    spec = {"title": "t", "summary": "s", "env": "e", "investigation": {"steps": steps}}
     with open(os.path.join(tmp, "report.json"), "w", encoding="utf-8") as f:
         json.dump(spec, f, ensure_ascii=False)
     log = build(tmp)
@@ -68,27 +73,34 @@ def main():
 
     # ① 확장자 없는 label → .jpg 해소
     with tempfile.TemporaryDirectory() as t:
-        log, html = make_case(t, {"cap-a.jpg": 1},
-                              [{"kind": "doc", "file": "cap-a", "caption": "c"}])
-        check("① label(확장자 없음) → .jpg 해소", n_img(html) == 1 and "캡처 없음" not in html,
-              f"img={n_img(html)}")
+        log, html = make_case(
+            t, {"cap-a.jpg": 1}, [{"kind": "doc", "file": "cap-a", "caption": "c"}]
+        )
+        check(
+            "① label(확장자 없음) → .jpg 해소",
+            n_img(html) == 1 and "캡처 없음" not in html,
+            f"img={n_img(html)}",
+        )
 
     # ② .jpeg
     with tempfile.TemporaryDirectory() as t:
-        log, html = make_case(t, {"cap-b.jpeg": 1},
-                              [{"kind": "test", "file": "cap-b", "caption": "c"}])
+        log, html = make_case(
+            t, {"cap-b.jpeg": 1}, [{"kind": "test", "file": "cap-b", "caption": "c"}]
+        )
         check("② label → .jpeg 해소", n_img(html) == 1 and "캡처 없음" not in html)
 
     # ③ .png
     with tempfile.TemporaryDirectory() as t:
-        log, html = make_case(t, {"cap-c.png": 1},
-                              [{"kind": "test", "file": "cap-c", "caption": "c"}])
+        log, html = make_case(
+            t, {"cap-c.png": 1}, [{"kind": "test", "file": "cap-c", "caption": "c"}]
+        )
         check("③ label → .png 해소", n_img(html) == 1 and "캡처 없음" not in html)
 
     # ④ 명시적 .jpg 도 그대로 동작(하위호환)
     with tempfile.TemporaryDirectory() as t:
-        log, html = make_case(t, {"cap-d.jpg": 1},
-                              [{"kind": "doc", "file": "cap-d.jpg", "caption": "c"}])
+        log, html = make_case(
+            t, {"cap-d.jpg": 1}, [{"kind": "doc", "file": "cap-d.jpg", "caption": "c"}]
+        )
         check("④ 명시적 .jpg 유지", n_img(html) == 1 and "캡처 없음" not in html)
 
     # ⑤ 진짜 없는 참조 → 빨간 경고(침묵 금지)
@@ -98,13 +110,25 @@ def main():
 
     # ⑥ 집계 = 실제와 일치 (investigation 포함, embedded 는 누락 제외)
     with tempfile.TemporaryDirectory() as t:
-        log, html = make_case(t, {"e1.jpg": 1, "e2.jpg": 1},
-                              [{"kind": "doc", "file": "e1", "caption": "c"},
-                               {"kind": "test", "file": "e2", "caption": "c"},
-                               {"kind": "doc", "file": "ghost", "caption": "c"}])
-        check("⑥ embedded 수 = 실제 <img> 수", embedded(log) == n_img(html) == 2,
-              f"log={embedded(log)} html={n_img(html)}")
-        check("⑦ MISSING 수 = 부재 참조 수", missing(log) == 1, f"log MISSING={missing(log)}")
+        log, html = make_case(
+            t,
+            {"e1.jpg": 1, "e2.jpg": 1},
+            [
+                {"kind": "doc", "file": "e1", "caption": "c"},
+                {"kind": "test", "file": "e2", "caption": "c"},
+                {"kind": "doc", "file": "ghost", "caption": "c"},
+            ],
+        )
+        check(
+            "⑥ embedded 수 = 실제 <img> 수",
+            embedded(log) == n_img(html) == 2,
+            f"log={embedded(log)} html={n_img(html)}",
+        )
+        check(
+            "⑦ MISSING 수 = 부재 참조 수",
+            missing(log) == 1,
+            f"log MISSING={missing(log)}",
+        )
 
     print(("ALL PASS" if not FAILS else f"{len(FAILS)} FAILED: {FAILS}"))
     return 1 if FAILS else 0

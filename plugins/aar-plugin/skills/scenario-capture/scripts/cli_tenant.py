@@ -8,13 +8,17 @@ the real Anthropic request_id and error body.
 
 Usage: cli_tenant.py <env>/<archive-folder>
 """
+
 import sys, os, glob, json
-from archive_common import UA_CLI, archive_dir_from_argv, repo_root, resolve  # 공통(중복 제거)
+from archive_common import (
+    UA_CLI,
+    archive_dir_from_argv,
+    repo_root,
+    resolve,
+)  # 공통(중복 제거)
 
 UA = UA_CLI
 HDR = "anthropic-allowed-org-ids"
-
-
 
 
 def hdr_get(h, name):
@@ -26,7 +30,11 @@ def hdr_get(h, name):
         for it in h:
             if isinstance(it, dict) and str(it.get("name", "")).lower() == name:
                 return it.get("value")
-            if isinstance(it, (list, tuple)) and len(it) == 2 and str(it[0]).lower() == name:
+            if (
+                isinstance(it, (list, tuple))
+                and len(it) == 2
+                and str(it[0]).lower() == name
+            ):
                 return it[1]
     return None
 

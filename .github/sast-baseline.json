@@ -1,10 +1,10 @@
 {
   "plugins/aar-plugin": {
-    "credential_theft": 3,
-    "data_exfiltration": 2,
+    "credential_theft": 4,
+    "data_exfiltration": 1,
     "privilege_escalation": 1,
-    "tool_misuse": 11,
-    "tool_poisoning": 127
+    "tool_misuse": 4,
+    "tool_poisoning": 70
   },
   "plugins/mcp-test-dowoo": {
     "tool_poisoning": 2

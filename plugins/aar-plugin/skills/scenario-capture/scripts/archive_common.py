@@ -5,6 +5,7 @@
 jscpd 가 중복 4건으로 잡았다(2026-08). 경로 규칙이 한 곳에만 있어야 아카이브 레이아웃이
 바뀔 때 한 번만 고친다.
 """
+
 import glob
 import json
 import os
@@ -16,7 +17,9 @@ UA_CLI = "claude-cli"
 
 def repo_root():
     """SDSreviewBLUE 루트(이 스크립트는 aar-plugin/skills/scenario-capture/scripts 아래)."""
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
+    )
 
 
 def resolve(arg):
@@ -26,7 +29,9 @@ def resolve(arg):
     p = os.path.join(repo_root(), "runs", "envs", *arg.split("/"))
     if not os.path.isdir(p) and "/" in arg:
         env, folder = arg.split("/", 1)
-        p = os.path.join(repo_root(), "runs", "envs", env, "captures", "archives", folder)
+        p = os.path.join(
+            repo_root(), "runs", "envs", env, "captures", "archives", folder
+        )
     return p
 
 

@@ -7,12 +7,16 @@ tool_result fed back — i.e. how Claude Code tool usage appears on the wire.
 
 Usage: cli_tool.py <env>/<archive-folder>
 """
+
 import sys, os, glob, json, re
-from archive_common import UA_CLI, archive_dir_from_argv, repo_root, resolve  # 공통(중복 제거)
+from archive_common import (
+    UA_CLI,
+    archive_dir_from_argv,
+    repo_root,
+    resolve,
+)  # 공통(중복 제거)
 
 UA = UA_CLI
-
-
 
 
 def main():
@@ -44,7 +48,9 @@ def main():
     if best:
         names = sorted(set(re.findall(r'"name":"([A-Z][A-Za-z]+)"', best)))
         print("\ntools[] catalog advertised by CLI:", ", ".join(names[:20]))
-        tu = re.search(r'"type":"tool_use","id":"[^"]+","name":"Bash","input":\{[^}]{0,120}', best)
+        tu = re.search(
+            r'"type":"tool_use","id":"[^"]+","name":"Bash","input":\{[^}]{0,120}', best
+        )
         tr = re.search(r'"type":"tool_result","content":"[^"]{0,80}', best)
         print("\ntool_use  (model -> tool):")
         print("  " + (tu.group(0) if tu else "(not found)"))
