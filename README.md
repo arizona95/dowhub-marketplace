@@ -115,5 +115,5 @@ plugins/                          플러그인 원본
 licenses/NOTICE.md                벤더링한 서드파티 출처
 ```
 
-원격 MCP(`gmail_dowoo`·`test_dowoo`·`aar-mcp`)는 소스가 아니라 엔드포인트라서 카탈로그에
+원격 MCP(`test-dowoo`·`aar-mcp`·`aas-mcp`)는 소스가 아니라 엔드포인트라서 카탈로그에
 카드로만 나열된다. 그 서버들은 각자 OAuth 로 자신을 보호한다.
