@@ -3,7 +3,7 @@
 AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atlassian 모델(`plugin.json` +
 `.mcp.json` 리모트 MCP + `skills/`).
 
-## 스킬 6종
+## 스킬 7종
 - **`/aar_review`** — env 적용 시나리오 **전수** 라이브 실증. 커버리지 원장으로 스코프를 강제해,
   전부 ✅/⛔ 되기 전엔 "완료" 불가(20%-완료-선언 재발 차단). 새 SaaS·대규모 업데이트 시.
 - **`/aar_update`** — 이 SaaS 를 **주기적(주 1회) 추적**. 지난번 대비 델타만 — 메뉴·세션·세팅·보존
@@ -11,6 +11,8 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
 - **`/aar_fix`** — 이 대화에서 지적받은 것을 근거로 리뷰 규범을 고친다. 마무리로 `aar-compounder`
   서브에이전트가 가이드 전체의 대전제를 감사한다.
 - **`/aar_explain`** — 리뷰 결과를 아무것도 모르는 사람에게 **HTML 아티팩트**로 설명(큰 그림, 적은 글씨).
+- **`/aar_question`** — AAR 자료에 **짧게 묻고 답**한다. 답과 함께 **포커스 가이드 링크**(dowmain.org/agentautoreview `?p=&tour=`)를 준다 —
+  열면 그 화면이 메뉴·표 칸·구성도 선을 하나씩 비추며 설명(웹 'AI에게 질문하기'와 같은 가이드, 로그인 불필요). aar-mcp `question` 도구.
 - **`/aar_menu`** — 원천 트리(menu/session/settings/retention)의 **항목 하나**만 조사해 보고서를 쓰고
   그 노드에 태그로 붙인다. 뷰어에서 빈 항목의 `📋 복사` 가 `/aar_menu <트리> <경로>` 한 줄을 준다.
 - **`scenario-capture`** — S1 한 건을 라이브로 수행·캡처해 리포트까지. (전수는 `/aar_review`)

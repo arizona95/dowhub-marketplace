@@ -29,6 +29,7 @@
     "monitor",
     "net_control",
     "policy",
+    "question",
     "report",
     "scenario",
     "scenario_start",
