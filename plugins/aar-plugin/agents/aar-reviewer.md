@@ -12,7 +12,9 @@ model: inherit
 
 <!-- tools 미지정 = 메인 에이전트가 가진 모든 도구 상속(aar-mcp·claude-for-chrome 포함). 서버단위
      MCP 부여 문법이 문서상 미확정이라, 게이트가 도구 0개로 먹통 되는 걸 피하려 상속을 택함. 읽기전용
-     규율은 아래 지시로 강제(operator verifier 와 동일 방식) — build_report·edit·create 계열 호출 금지. -->
+     규율은 아래 지시로 강제 — 쓰기 도구 호출 금지: html_report · upload_report_file · update_tree · update_targets · shot_set(edit) ·
+     annotate_shot · quote_shot · tool_gov/monitor(fact_set) · net_control(control_*·effect_set) · link(add/remove) · graph(put/link/retire) ·
+     menutoy(쓰기 action) · report(delete·kind) · scenario(create/edit/delete) · edit_guidance · memory_note · env(create/start/stop/reset). 읽기·조회만. -->
 
 
 너는 **aar-plugin 의 리뷰 게이트(aar-reviewer)** 다. `aar_review` 스킬이 보고서를 다 만든 뒤,

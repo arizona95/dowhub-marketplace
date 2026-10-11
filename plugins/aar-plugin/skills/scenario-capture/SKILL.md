@@ -99,7 +99,7 @@ user PC 는 Guacamole RDP **이미지 스트림**(DOM 없음). 콘솔을 거쳐 
 
 L7-policy 룰(콘솔 클릭 권장; 빠르게는 API):
 ```bash
-# 테넌트 헤더 인젝션: action=inject  (헤더명/값/도메인은 S0-05 가 찾은 그 SaaS 실제값 사용)
+# 테넌트 헤더 인젝션: action=inject  (헤더명/값/도메인은 S0 리서치가 찾은 그 SaaS 실제값 사용)
 POST /envs/$ENV/dlp/rules {"name":"tenant","action":"inject","direction":"request","inject_mode":"set",
   "header":"<S0가 찾은 헤더>","value":"<비허용 org>","pattern":"<대상 도메인>","location":"host","enabled":true}
 # DLP 차단: action=block / L4 차단: action=l4block
@@ -112,29 +112,28 @@ OTel: Loki `query_range` 로 `{service_name="<대상 서비스명>"}` + `<대상
 S1 은 최소 **before(룰 전 정상) / after(룰 후 차단) / proxy(L7-proxy 복호화 차단 flow) / 차단본문** 을 각각 캡처.
 (**절대 backup/videos 에서 옛 mp4 를 끌어오지 않는다.**)
 
-## 4. 시나리오별 머니샷 (캐노니컬 S1-exp-open-NN)
-| 시나리오 | 라이브로 보여줄 변화(before→after) + money shot |
+## 4. 실증 유형별 머니샷 (시나리오 id 는 `list_scenarios` — 아래는 유형)
+| 유형 | 라이브로 보여줄 변화(before→after) + money shot |
 |---|---|
-| 01-proxy | user PC(§1 OS) 질의 → L7-proxy 에 그 호스트 flow 복호화 |
-| 02-egress | 질의 1사이클 → L7-proxy 호스트 목록/L4 SNI. **🚨 보고서에 `table` 블록으로 목적지 전수 표**(`archive.py hosts_tsv`): 대상이 동작할 때 어디로 통신하는지 리스트로 쫙. 사진/영상/설명만 넣지 마라 |
-| 03-tenant | L7-policy inject(전 200) → 재전송 → **서버측 차단** flow(주입헤더+차단응답). 값은 S0-05 인용 |
-| 04-dlp | L7-policy block(전 200) → 재전송 → 451 + `{blocked,rule_name,matched}` |
-| 05-otel | log-server Loki 에서 대상 텔레메트리 이벤트(네임스페이스는 S0 실측값; 주입 데모면 캡션 명시) |
-| 06-tool | user PC(§1 OS) 툴 실행 → L7-proxy completion flow req/resp 본문(SSE) |
-| 07-orgsetup | 조직 설정 항목 순회 스크린샷(소유자) |
+| 프록시 | user PC(§1 OS) 질의 → L7-proxy 에 그 호스트 flow 복호화 |
+| 송신 목적지 | 질의 1사이클 → L7-proxy 호스트 목록/L4 SNI. **🚨 보고서에 `table` 블록으로 목적지 전수 표**(`archive.py hosts_tsv`): 대상이 동작할 때 어디로 통신하는지 리스트로 쫙. 사진/영상/설명만 넣지 마라 |
+| 테넌트 제한 | L7-policy inject(전 200) → 재전송 → **서버측 차단** flow(주입헤더+차단응답). 값은 S0 리서치 인용 |
+| DLP | L7-policy block(전 200) → 재전송 → 451 + `{blocked,rule_name,matched}` |
+| OTel | log-server Loki 에서 대상 텔레메트리 이벤트(네임스페이스는 S0 실측값; 주입 데모면 캡션 명시) |
+| 도구 실행 | user PC(§1 OS) 툴 실행 → L7-proxy completion flow req/resp 본문(SSE) |
+| 조직 설정 | 조직 설정 항목 순회 스크린샷(소유자) |
 
 ## 5. 4단계 규율 (순서 고정 · 거짓보고 방지)
 1. **실험** — 녹화 전 메커니즘이 **진짜 되는지** 하드증거(flows API 복호화 본문·status·Loki·차단응답)로 확인. **행동 전/후 *변화*를 둘 다 관측**(룰 전 200 → 룰 후 403). 안 되면 멈추고 원인부터 고친다. 검증 안 된 걸 캡처하지 않는다.
 2. **정리** — 1에서 *실제로 본* before/after/그 차이를 적는다. 여기 없는 건 보고서에도 못 쓴다.
 3. **라이브 캡처** — 내 브라우저로 before 화면 → 행동 → after 화면 → proxy/본문을 각각 캡처해 올린다. 직전 정리: 앱 상태 리셋(배너/모달 잔상 제거·New chat), `clear_capture(env)`(옛 트래픽/히스토리 숨김), RDP 앱 foreground 확인. DLP 룰은 **try/finally 로 항상 삭제**(다음 before 오염·사용자 세션 복구).
    🚨 **녹화 자막 = 관측된 사실만.** 결과 단계 자막(차단/허용/상태코드)은 그 프레임에 실제로 보이는 status 를 확인한 *뒤* 그것과 일치하게 깐다 — 계획서의 기대값("③ 403 차단")을 미리 깔지 마라. 기대와 다른 관측(주입에도 통과 등)은 실패가 아니라 **발견**이다: 자막을 관측대로 고쳐 깔고, 틀린 자막이 이미 박힌 구간은 재녹화(안 그러면 verifier FAIL 로 그 발견의 증거 자체가 죽는다).
-4. **보고서** — `html_report`(또는 `report.py`)로 **세션 폴더**에 만든다. before/after/timeline `file` 은 방금 찍은 캡처 라벨. **캡처에 없는 장면은 절대 쓰지 않는다.** 머니샷이 캡처에 안 보이면 3 실패 → 1로 돌아간다. **🚨 프레임 없으면 주장 없음.**
+4. **보고서** — MCP `html_report` 로 만든다(로컬 파일·스크립트 없음). before/after/timeline `file` 은 방금 찍은 캡처 라벨. **캡처에 없는 장면은 절대 쓰지 않는다.** 머니샷이 캡처에 안 보이면 3 실패 → 1로 돌아간다. **🚨 프레임 없으면 주장 없음.**
 
 ## 6. 보고서 산출 (세션 폴더 · html_report)
 - 📈 **그래프(관계 그래프·구성도)는 사진이 아니라 Graph 데이터로 올린다(2026-09-28)** — MCP `graph("put")` 로 영역·노드·흐름·간선을 올리고 블록 `{"type":"graph","graph":"<code>"}` 로 넣는다(발행이 rev 를 고정하고 그림을 만든다). HTML/SVG 를 그려 캡처하거나 이미지 파일로 올리지 않는다 — 절차는 `skill("get", "aar_review/report-skills/section2-arch-diagram")`.
-- 출력 = `Auto_Report/sessions/<env>-<생성일>/<시나리오>/{report.html, report.json, img/}`.
-- `report.json`: `before_after`/`timeline` 프레임(방금 캡처) + `analysis`(빌드 시 이 env 아카이브에 archive.py 실행돼 박힘, 날조 불가) + `why`/`failure_angle`.
-- `report.py build <세션폴더>` 가 html 생성. analysis cmd 는 `runs/envs/<env>/captures/archives/...` 의 **이번 env 실데이터**를 집계.
+- 서버가 세션에 보고서를 쓴다(화면 = 보고서 탭의 책). `before_after`/`timeline` 프레임(방금 캡처) + `analysis`(발행 때 이 env 아카이브에 archive.py 가 실행돼 박힘, 날조 불가) + `why`/`failure_angle`.
+- analysis cmd 는 `runs/envs/<env>/captures/archives/...` 의 **이번 env 실데이터**를 집계.
 - **금지 재확인**: `backup/videos` 에서 report/mp4/img 를 cp 하지 마라(honeypot). 다른 세션 폴더도 참조 금지. 같은 세션만.
 
 ## 7. 시나리오별 실패 모드 (실제 겪음 — 재발 방지)
@@ -154,7 +153,7 @@ S1 은 최소 **before(룰 전 정상) / after(룰 후 차단) / proxy(L7-proxy 
 - **초기화 먼저**: 트리거(런) **시작 전에** 콘솔 → env → **L7-proxy → 우상단 "초기화"** 눌러 flow 버퍼 비운다(안 그러면 10000 링버퍼가 넘쳐 런 flow가 밀려나감). 버퍼 상단 "10002/10000" 처럼 넘으면 오래된 게 사라진다.
 - **프록시 증적**: 콘솔 → env → **L7-proxy** → 우상단 **"헤더/본문 전체 검색" 필터**에 그 아티팩트 **마커 문자열**(예 `DEMO-12-COWORKREMOTE`) 입력 → 매칭 flow 목록 캡쳐 → flow **클릭**해 우측 **detail(요청/응답 헤더+본문 전문)** 캡쳐. 이게 "어떻게 캡쳐됐는지"까지 보이는 진짜 증적. (원격 MCP 툴콜은 `claude.ai/.../mcp/servers/<id>/tools/call`, 대화·로컬 결과는 `api.anthropic.com/v1/messages` 로 잡힌다.)
 - **OTel 증적**: 콘솔 → env → **log-server**(=Grafana Explore/Loki 임베드). **Code** 토글 → 쿼리 에디터에 `{service_name="<대상 서비스명>"}`(S0 실측값) 입력 → **Shift+Enter** 실행 → 히스토그램+이벤트 라인 캡쳐 → tool_result 이벤트 **클릭 펼쳐** `tool_input`(입력 평문) vs `tool_result_size_bytes`(출력 크기만) 캡쳐. (Grafana 외부IP 직링크는 root_url 리다이렉트로 404 → 반드시 log-server 컴포넌트로 열 것.)
-- **공식문서 증적**: 내 브라우저의 별도 탭으로 그 제품 **공식 문서** URL 을 열어 그 문장이 보이게 스크롤 후 스크린샷. **"공식문서에 있으니 O/X"는 금지 — 그 문서 페이지를 캡쳐해 박아야 근거.** 문서가 "미포함/안 잡힘"을 명시하면 그건 **없다는 근거 = X**(물음표 아님).
+- **공식문서 증적**: 내 브라우저의 별도 탭으로 그 제품 **공식 문서** URL 을 열어 그 문장이 보이게 스크롤 후 스크린샷(칠하지 않은 원본) → `quote_shot` 으로 문서 인용 세트 → 응답 `doc_block` 을 doc 블록으로. **"공식문서에 있으니 O/X"는 금지 — 그 문서 페이지를 캡쳐해 박아야 근거.** 문서가 "미포함/안 잡힘"을 명시하면 그건 **없다는 근거 = X**(물음표 아님).
 
 ### 판정 규칙(재확인)
 - O/X/-/? 4개만. **이 보고서에 캡쳐로 박힌 것만 근거**. 캡쳐 없이 확인 불가면 ?. 문서가 명시적으로 부정하면 X.
