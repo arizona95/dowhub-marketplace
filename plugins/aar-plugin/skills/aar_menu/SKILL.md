@@ -2,7 +2,7 @@
 name: aar_menu
 version: 1.0.0
 description: |
-  원천 트리(menu/session/settings/retention)의 **노드 하나**를 조사해 보고서를 쓰고, 그 노드에
+  원천 트리(menu/session/managed-settings/data-retention)의 **노드 하나**를 조사해 보고서를 쓰고, 그 노드에
   태그로 붙인다. 뷰어에서 보고서가 비어 있는 항목의 "📋 복사" 로 받은 `/aar_menu <트리> <경로>`
   한 줄로 불린다. "이 메뉴 조사해줘", "이 항목 뭐하는 건지 봐줘" 일 때.
   (전수는 `/aar_review`, 주기 추적은 `/aar_update` — 이건 **한 항목만**.)
@@ -29,7 +29,7 @@ allowed-tools:
 ```
 /aar_menu menu claude-app/개인설정/Desktop app/Developer
 ```
-- **트리** = `menu` · `session` · `settings` · `retention` 중 하나.
+- **트리** = `menu` · `session` · `managed-settings` · `data-retention` 중 하나(그 밖의 값은 서버가 거부한다).
 - **노드경로** = 루트부터 `/` 로 이은 경로. 뷰어의 복사 버튼이 그대로 넣어준다.
 - 인자가 없거나 불완전하면 **되묻지 말고** `tree("list")` → `tree("get", …)` 로 후보를 보여주고
   어느 항목인지 한 번만 확인한다.
@@ -54,11 +54,12 @@ allowed-tools:
 
 ## 3) 보고서를 쓰고 **그 노드에 붙인다**
 ```
-html_report(session, scenario="menu-<노드슬러그>", title=…, summary=…,
+html_report(session, scenario="C1-<트리>-<노드슬러그>", title=…, summary=…,
             blocks=[{"type":"shot", "label":…, "caption":…, "items":["<그 노드 id tnd_…>"]}, …])
 ```
+- 시나리오 이름은 등록 안 된 즉석 조사 규칙(`C0-`·`C1-` 접두사 — html_report 설명)을 따른다.
 - 🚨 **블록에 `items`(그 노드의 id — `tree("get")` 결과의 id)를 빼면 트리에 안 붙는다** — 빈칸이 그대로 남는다. 옛 `tag={"tree","path"}` 경로 입력도 아직 받지만 새로 쓸 땐 `items`.
-- 조사하며 알게 된 것은 **먼저 항목에 남긴다**(`update_tree` 설명·`shot_set` 사진 세트·`checklist_set` 판정) — 보고서는 그 요약이다.
+- 조사하며 알게 된 것은 **먼저 항목에 남긴다**(`update_tree` 설명·`shot_set` 사진 세트·`menutoy("checklist_set")` 판정) — 보고서는 그 요약이다.
 - 완료도(leaf 사진)는 **유효 증적**으로만 센다: 그 블록에 실제 캡처가 있거나 그 노드에 사진 세트가 붙어야 "사진 있음". 항목 연결만으로는 0.
 - `title` = 이 리포트가 **하려는 일**(검토 목적·범위). 결과·결론은 `summary` 와 본문에.
 - 캡처 없는 주장은 넣지 마라. 캡처 0장이면 그건 보고서가 아니다.
