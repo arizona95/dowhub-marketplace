@@ -15,7 +15,7 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
 검은 화면이 찍힌다.
 
 **(B) 그 밖의 화면(공식문서 등) → 내가 떠서 POST** — 공식문서는 올린 뒤 `quote_shot(label, out_label, source_url, quotes=[{x,y,w,h,quote}], proves)` 로 문서 인용 세트를 만들고 응답의 `doc_block` 을 html_report 의 doc 블록에 넣는다. 🚫 캡처에 형광·빨간 네모를 칠해서 올리지 마라(좌표·인용문은 데이터로 — 공통수칙 §3-0-1).
-- 올리는 곳: `POST https://dowmain.org/api/v1/evidence` · body `{"label": "<라벨>", "image": "<dataURL>", "session": "<이번 세션명>", "env": "<env>", "scenario": "<시나리오 id>", "url": "<찍은 화면 URL>"}`
+- 올리는 곳: `POST https://dowmain.org/agentreview/api/v1/evidence` · body `{"label": "<라벨>", "image": "<dataURL>", "session": "<이번 세션명>", "env": "<env>", "scenario": "<시나리오 id>", "url": "<찍은 화면 URL>"}`
   🚨 **session 은 필수다(없으면 400).** 서버가 캡처를 그 세션에 귀속시켜(사이드카) 리포트 빌드 때 **같은 세션 증적만** 라벨로 고른다 —
   다른 세션의 동명 캡처는 섞이지 않는다. 응답의 `evidence_id` 를 받아 두면 `shot` 블록에 `evidence_id` 로 정확히 그 파일을 가리킬 수 있다(재촬영 시 새 id).
 - 뜨는 법: 브라우저 스크린샷의 dataURL. RDP canvas 를 직접 떠야 하면 `toDataURL`(영역 크롭 1:1, 1920px).
