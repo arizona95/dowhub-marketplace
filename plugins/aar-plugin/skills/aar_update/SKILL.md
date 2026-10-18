@@ -118,6 +118,9 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 ## `/aar_update <지시>` — 지시가 요약이다
 - 예: `/aar_update 스킬 공유 설정 설명이 바뀌었대` · `/aar_update 플러그인에 마켓플레이스 추가 메뉴가 생겼어`
 - ① 신호 수집을 **건너뛰고**, 지시를 요약의 변경점으로 옮긴다(지시 하나가 여러 변경점이면 나눈다). 지시가 가리키는 화면을 **한 번 확인**해 전·후를 캡처로 남긴다(지시가 사실과 다르면 그 사실을 보고하고 그 변경점은 뺀다).
+- 트리 뷰어에서 보고서가 비어 있는 항목의 "📋 복사" 는 `/aar_update <트리> <노드경로> …` 한 줄을 준다 — 그 노드 하나가 변경점이다(옛 `aar_menu` 에서 옮김):
+  `has_report` — **이미 보고서가 붙어 있으면 그렇다고 말하고 멈춰라.** 화면에서 ①기능 ②설정 방법과 현재값 ③보안 권고 ④위험 을 채우고,
+  🚨 **블록에 `items`(그 노드의 id — `tree("get")` 결과의 id)를 빼면 트리에 안 붙는다** — 빈칸이 그대로 남는다. **한 항목만** — 옆 항목까지 번지지 마라.
 - ②③ 은 아래와 똑같다.
 
 ## 메뉴 재현 ↔ 트리 루프 (어긋남 → 뒤처진 쪽 고침)
@@ -174,7 +177,8 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 
 작업 목록을 선행 순서대로 하나씩:
 - **트리** — 바뀐 앵커에만 `update_tree(tree_id, node_path=[앵커], patch=[그 아래 현재])`. 삭제 판정은 앵커 서브트리 안에서만. 사진이 필요하면 `annotate_shot`·`shot_set`.
-- **메뉴 재현** — 파싱 오류면 파서 수정 → `reparse`. 항목 판정·팝업·문서 근거는 `menutoy`(`checklist_set`·`popup_set`·`web_add`). 새 제품 toy 는 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 갱신(어느 toy 에도 없을 때만 새로).
+- **메뉴 재현** — 수집은 `menutoy("collect", …)` → `menutoy("collect_status", key=<job>, at="80")`(서버가 80초 대기) **최대 25번(≈30분)** 까지만(옛 `aar_menutoy` 에서 옮김). VM 의 브라우저에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫). 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다).
+  파싱 오류면 `menutoy("source_get", product, source)` 로 파서·raw 를 보고 **재수집 없이** 고친다 — 행 `k`(키)는 **화면 위치가 아니라 의미**로 안정되게(키가 바뀌면 diff 가 전부 +/− 로 보이고 체크리스트 연결이 끊긴다) → `source_set(parser=…)` → `reparse`. 항목 판정·팝업·문서 근거는 `menutoy`(`checklist_set`·`popup_set`·`web_add`). 새 제품 toy 는 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 갱신(어느 toy 에도 없을 때만 새로).
 - **도구 통제** — 절차 정본 = S1-tool-control 지시문. 실체 `tool_gov("entity_add"|"entity_edit")`, 사실 `tool_gov("fact_set", …, evidence=[캡처 블록], reason=완결 문장, actor)`. 판정 O/X/-/? 만(부분 판정 금지 — 애매하면 경로·범위별로 나눈다), 입구 없으면 '-', 관리자가 통제를 바꾸면 멤버 앱 새로고침·재시작 뒤 확인, 원복 5단계.
 - **연결** — 같은 대상임을 화면으로 확인한 것만 `link("add", a, b, note)`, 사라진 대상과의 연결은 `link("remove", a, b, reason)`.
 - **보고서** — `scenario_start` → 라이브 캡처 → `html_report`(블록 `items=[노드·항목 id]`). 보고서는 바뀐 것의 요약만(메뉴 전체 나열 금지).

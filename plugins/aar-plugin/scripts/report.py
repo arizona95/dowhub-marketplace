@@ -36,13 +36,13 @@ report.json schema (all 'file' are written into <folder>/img/ by build):
     "title":   "아카이브 패킷 분석 (bash)",
     "intro":   "캡처를 POST /api/export 로 아카이브 떠서 그 폴더의 flow JSON 을 집계한 것",
     "archive": "runs/envs/<env>/captures/archives/<folder>",
-    "blocks":  [ {"caption": "egress 집계", "cmd": "python3 aar-plugin/skills/scenario-capture/scripts/archive.py hosts <env>/<folder>"}, ... ]
+    "blocks":  [ {"caption": "egress 집계", "cmd": "python3 aar-plugin/scripts/archive.py hosts <env>/<folder>"}, ... ]
   },                                  # 각 cmd 는 build 시 cwd=repo 에서 '실제로 실행'되어 출력이 그대로 박힘
   "blocks": [                         # 자유 구성 블록(순서·반복 자유). type: heading/before_after/
                                       # timeline/investigation(doc)/video/analysis/table.
     {"type": "table", "caption": "egress 목적지 전수",   # 표(리스트) — 사진/영상/설명만으론 부족할 때.
      "columns": ["목적지 (scheme://host:port)", "건수", "method", "주요 경로", "상태코드"],
-     "cmd": "python3 aar-plugin/skills/scenario-capture/scripts/archive.py hosts_tsv <env>/<folder>"}
+     "cmd": "python3 aar-plugin/scripts/archive.py hosts_tsv <env>/<folder>"}
     # cmd stdout(탭구분 TSV)을 표 행으로 렌더(실데이터·날조불가). 정적이면 cmd 대신 "rows":[[...],...].
   ],
   "why":            ["프레임/분석 근거 설명", ...],
@@ -89,7 +89,7 @@ def _analysis_argv(cmd):
         if meta in cmd:
             return None, (
                 f"셸 문법({meta!r})은 실행하지 않는다 — 분석 블록은 "
-                f"scenario-capture/scripts 의 분석 스크립트만 돌린다"
+                f"aar-plugin/scripts 의 분석 스크립트만 돌린다"
             )
     try:
         argv = shlex.split(cmd)
@@ -479,9 +479,9 @@ def build(folder):
 
     esc = lambda s: html.escape(str(s))
 
-    # analysis/table cmd 는 cwd=repo(SDSreviewBLUE root)에서 `aar-plugin/skills/scenario-capture/scripts/archive.py` 상대경로로
+    # analysis/table cmd 는 cwd=repo(SDSreviewBLUE root)에서 `aar-plugin/scripts/archive.py` 상대경로로
     # 돈다. 세션폴더 깊이(Auto_Report/sessions/<session>/<scenario> = 4단)가 고정이 아니므로 `../../..`
-    # 하드코딩은 Auto_Report 로 잘못 잡힌다(2026-07 버그) → `aar-plugin/skills/scenario-capture` 가 보일
+    # 하드코딩은 Auto_Report 로 잘못 잡힌다(2026-07 버그) → `aar-plugin/scripts` 가 보일
     # 때까지 상위로 걸어올라가 진짜 repo root 를 찾는다. 못 찾으면 옛 동작(../../..)으로 폴백.
     def _find_repo(start):
         # 1) operator 가 넘긴 명시 루트 2) 위로 올라가며 repo 표식(runs/envs 또는 Auto_Report) 3) 옛 규칙(상위 3단)
