@@ -31,6 +31,17 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
 - **S1~(env 실증)** = 콘솔을 열어 env 트리 → user-window-pc → RDP 로드 → 그 PC 조작 → (A) 로 캡처.
   제품 트래픽은 그 env(프록시 뒤)를 지나므로 **콘솔 flow 뷰**로 확인한다.
 
+## 🎬 S1 라이브 실증 — 지킬 것 (옛 `scenario-capture` 스킬에서 옮김, 2026-10-18)
+- 🚨 **명령은 RDP 화면 안 PowerShell 에서 직접 친다.** 헤드리스 실행 경로는 **없앴다** — az run-command 는 항상 SYSTEM 이라 유저 세션·per-user 앱·HKCU 를 못 봐 헛돌았다.
+- 🚨 **창을 반드시 확인하고 쳐라** — 좌표로 포커스를 잘못 잡아 **명령이 대상 앱 입력창에 새어 들어간 사고**가 있었다(GPT 창에 PowerShell 을 친 것).
+  ① 명령을 입력한 뒤 **터미널 화면 영역을 한 번 클릭해 포커스** ② **Enter 를 2~3번**(RDP/Guacamole 는 첫 Enter 가 씹히는 경우가 많다) ③ **스크린샷으로 프롬프트가 다음 줄로 넘어갔는지** 확인 ④ 오래 걸리면 **완료 전 다음 명령 금지**.
+- 🚨🚨 **CLI형 SaaS(Claude CLI·Codex CLI·gemini-cli 등)는 터미널 자체가 피평가 앱이다** — 로그인·프롬프트 입력·응답 확인도 가시 RDP 터미널에서 한다. **shell/az 로 CLI 를 돌린 출력은 증적으로 절대 인정 못 받는다**(사용자가 로그인한 실제 세션이 아니라 "로그인 안 됨" 같은 거짓 실패가 뜬다 — 2026-07-23 실사고).
+- 🚨🚨 **별도 관측주체(사내 프록시·OTel/Loki·Compliance)가 "봤다/기록했다"는 증적을 스크립트로 조회해 print 한 화면은 절대 금지**(2026-07 moncanary.py 사고). 프록시 관측 = 콘솔 L7-proxy 뷰어에 마커 필터→flow 클릭→요청/응답 detail 이 뜬 그 화면. OTel = log-server(Grafana/Loki Explore)에 쿼리→이벤트가 뜬 그 화면.
+- 🚨 **콘솔 조작 = MCP 도구** — L7 정책 등록/삭제·flow 검색·clear/archive 는 `policy("create"|"list"|"delete", env, …)` · `clear_capture` · `archive_capture`. **모든 시나리오 끝에 archive_capture + cleanup(등록한 정책룰 `policy("delete", env, rule_id=…)`)을 try/finally 로 강제** — 다음 before 오염·사용자 세션 훼손 방지.
+- 🖥️ **어느 PC 에서 할지** — user-window-pc(Windows) / user-linux-pc(Linux), 관리자 행위는 admin-window-pc. 대상이 한쪽 OS 에만 있으면 **반드시 그 PC**(미지원 OS 에 억지로 = 대상 결함이 아니라 PC 선택 오류).
+- **부정(negative) 결론 전 체크리스트**: "안 보임 → 안 됨"으로 단정 금지. ① clear_capture 했나 ② 올바른 host/표면·flow 필터인가 ③ 충분히 기다렸나(설치·전파 지연) ④ 다른 채널(WS/SSE·다른 도메인·L4)로 나간 건 아닌가 — 넷 다 짚은 뒤에만 "미관측" 판정.
+- **4단계 규율**: ① 실험(녹화 전 메커니즘이 진짜 되는지 하드증거로, 행동 전/후 *변화*를 둘 다 관측) ② 정리(실제로 본 것만 — 여기 없는 건 보고서에도 못 쓴다) ③ 라이브 캡처 ④ 보고서. **🚨 프레임 없으면 주장 없음.**
+
 ## 리뷰 워크플로 (요약)
 1. 환경 확인/생성 → `env("get", name)` 의 `state` 가 **running** 이 될 때까지 대기(생성·기동은 수 분)
 2. 대상 확정 → 적용 시나리오는 `coverage_ledger` 가 계산해준다(스코프 계약)
