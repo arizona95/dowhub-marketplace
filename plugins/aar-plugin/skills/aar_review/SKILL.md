@@ -35,6 +35,7 @@ allowed-tools:
 3. **"정직한 미실시 표기"는 완료 조건이 아니다.** 안 한 걸 안 했다고 적는 건 최소 조건일 뿐. 미실시=⬜(할 일)이지 ✅가 아니다. ⬜를 남기고 "완료"라고 하면 이 스킬 실패다.
 
 ## Phase 0 — 커버리지 원장부터 (작업 전 필수)
+- 🔁 **반복 실수부터**(2026-10-18 사용자 "실수반복같은거 자가피드백하고잇지?"): AgentReview 저장소가 있는 PC 면 `AgentReviewPlugin/vmscreen/vms-audit recall` — 지난 실행들의 호출 이력 점검에서 3번 이상 되풀이된 실수(원본 그림 열기·큰 Bash 출력 등)와 고칠 규칙이 나온다. 이번 작업에서 피한다(없는 PC 면 건너뜀).
 **MCP 툴 `coverage_ledger(env, session)` 를 부른다.** (로컬 스크립트·localhost 아님 — 서버가 계산해 돌려준다. 이 스킬은 어느 PC 에 깔려도 MCP 로만 동작.)
 - 반환 `table_md` = 이 env 에 **적용되는 시나리오 전수**(변형 exp-open/close·inline·llm 자동 계산)와 각 ✅/⬜.
 - 이 표가 **이번 리뷰의 스코프 계약**이다. `rows` 중 status=`todo`(⬜) 전부가 대상 — 몇 개만 고르지 마라.
@@ -57,6 +58,7 @@ allowed-tools:
 - 관리자 콘솔 로그인 필요(비번 입력은 안 하는 동작) 같은 **내가 못 넘는 벽**만 ⛔. 사유를 원장·보고서에 명시하고 **사용자에게 그 로그인을 요청**한다.
 - S2(비교)는 **두 env 변형이 같은 세션에 있어야** 성립 → env 하나뿐이면 ⛔(2nd env 필요) 또는 C- 커스텀 대체(사유 명시).
 - "그냥 안 한 것"은 ⛔ 아니다. ⬜ 로 남기고 계속한다.
+- ⛔ 남기기 = **서버 기록**으로만: `coverage_ledger(env, session, action="block", scenario=<id>, reason=<외부 사유 완결 문장(마침표)>, evidence=[evd_… | rpt_…@n](선택))` → 원장 행이 ⛔ blocked(사유 표시)로 바뀌고 todo 에서 빠진다(빈 사유 거부 · 보고서가 나중에 완료되면 ✅ 가 이긴다). 풀기 = `action="unblock", note=<까닭>`. 보고서·대화에 "⛔" 라고 적기만 한 것은 원장에 남지 않는다.
 
 ## 완료 게이트 (이거 통과 못 하면 "완료" 금지)
 1. **다시 `coverage_ledger(env, session)` 를 불러** `todo` 가 0 인지 본다.
@@ -64,7 +66,10 @@ allowed-tools:
 2. 🚨 **독립 검증 서브에이전트 `aar-reviewer` 를 반드시 부른다** — `Task(subagent_type="aar-reviewer", …)`. 프롬프트에 **이번 `session`·`env` + 이 리뷰의 배정 대상(target)과 tier 목표**(사용자 요청/env 에서 정한 것 — 있으면)를 넘겨라. 이 경로엔 operator verifier 가 없으니 **이 게이트가 유일한 독립 검증자**다.
    - 그 서브에이전트가 검사하는 것: ① **배정 대상에서 드리프트 안 했나**(다른 제품/표면으로 갈아타지 않았나 — 실사고) ② **tier 귀속이 정직한가**(확인한 tier 로 귀속, 배정 tier 목표와 어긋나지 않았나) ③ 커버리지 전수 ④ 증거 3종 세트 ⑤ 날조/베끼기/부정결론 회피.
    - **`PASS` 가 나와야만 "완료"** 라고 말한다. 결함 목록이 오면 **그 결함을 Phase 1~N 으로 돌아가 고친 뒤 다시 `aar-reviewer` 를 부른다**(PASS 까지 반복). 결함을 무시하고 완료 선언 금지.
-3. 완료 보고에는 `coverage_ledger` 의 `table_md` 를 그대로 붙이고(✅/⛔/사유), **`aar-reviewer` 가 PASS 했다는 사실**도 적는다. 커버리지·미완료·검증결과를 숨기지 마라.
+   - 게이트 시작 때 aar-reviewer 가 `harness("digest")`(열린 개선)를 읽고 결함 목록과 함께 고칠 전략(묶음·순서)을 낸다 · 게이트 끝에 `harness("gate", …)` 로 회차 결과를 남긴다(하네스 탭 — 회차 추이). 결함을 고친 작업 단위가 끝나면 `harness("run", task, kind="fix", fixes=[<그 회차 hgr_…>], agents, calls)`.
+   - 작업 중이나 끝에 실수·반복 실수·개선 방향이 보이면 보고서 끝에 쓰는 것과 별개로 `harness("improve", kind=token|accuracy|procedure|tool|instruction, text=<한두 문장>, where=<고칠 곳>)` 로 보낸다(MCP 가 없으면 AgentReview 저장소에서 `python -m aar_core.harness improve --kind … --text "…"`) — 같은 내용은 횟수가 쌓여 반복 실수가 드러난다.
+3. **호출 이력 자기점검**(AgentReview 저장소가 있는 PC 만): 끝나면 `AgentReviewPlugin/vmscreen/vms-audit --self`(서브에이전트로 찍었으면 `-a <agentId>` 마다)를 돌려 위반·토큰 요약(출력 그대로 — 짧다)을 완료 보고에 붙인다. 위반은 실행마다 개선 접수함으로 한 건씩 간다(같은 내용 = 횟수 +1) — 다음 `recall` 의 근거.
+4. 완료 보고에는 `coverage_ledger` 의 `table_md` 를 그대로 붙이고(✅/⛔/사유), **`aar-reviewer` 가 PASS 했다는 사실**도 적는다. 커버리지·미완료·검증결과를 숨기지 마라.
 
 > 🎯 **이 리뷰의 대상·tier 목표는 "무엇을 리뷰하라"는 요청·env 에서 온다(스킬이 특정 제품/tier 를 하드코딩하지 않는다).** 그 배정을 **첫 턴에 명확히 잡고** 모든 리포트의 주어를 그 대상으로 유지하라 — 그래야 `aar-reviewer` 의 드리프트/tier 게이트에 안 걸린다.
 
