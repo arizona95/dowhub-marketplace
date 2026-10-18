@@ -40,6 +40,8 @@ S1(환경 실증) 시나리오를 **콘솔을 연 내 브라우저에서 직접*
 ---
 
 ## 0-A. 매크로 도구 — 좌표는 "진짜 앱 UI 관측"에만, 준비·콘솔은 도구로
+- 🔁 **촬영 시작 전·끝난 뒤 호출 이력 점검**(AgentReview 저장소가 있는 PC 만 — 없으면 건너뜀): 시작 = `AgentReviewPlugin/vmscreen/vms-audit recall`(되풀이된 실수 — 피한다) · 끝 = `vms-audit --self` 출력(호출·토큰·위반 — 조작 없이 화면 보기만 반복·넓은 look·같은 대상 재시도·원본 그림 열기 등, 시나리오별)을 보고에 붙인다.
+- 🔁 작업 중이나 끝에 실수·반복 실수·개선 방향이 보이면 보고서 끝에 쓰는 것과 별개로 `harness("improve", kind=token|accuracy|procedure|tool|instruction, text=<한두 문장>, where=<고칠 곳>)` 로 보낸다(MCP 가 없으면 AgentReview 저장소에서 `python -m aar_core.harness improve --kind … --text "…"`) — 같은 내용은 횟수가 쌓여 반복 실수가 드러난다.
 좌표 클릭·타이핑은 **대상 앱 UI 를 실제로 관측**할 때만 쓴다(ChatGPT 앱에 질의 입력, Store 클릭 등 RDP 캔버스 조작). **준비·콘솔조작에 좌표를 쓰지 마라** — 실측상 도구호출의 71%가 픽셀조작이었고, 근본원인이 (a) 준비(PowerShell·파일생성·환경체크·MCP설치)를 RDP 터미널에 좌표로 타이핑("PS 를 GPT 창에 치는" 사고), (b) 콘솔조작(정책·flow검색·clear)을 좌표클릭, (c) ToolSearch 파편, (d) 헛촬영(registry ID 드리프트·clear 산발)이었다. 아래로 갈음:
 
 - 🚨 **명령은 RDP 화면 안 PowerShell 에서 직접 친다.** 헤드리스 실행 경로는 **없앴다** — az run-command 는 항상 SYSTEM 이라 유저 세션·per-user 앱·HKCU 를 못 봐 헛돌았고, 그걸 대체하려던 유저 컨텍스트 exec 채널도 **에이전트 스케줄태스크 등록이 자주 깨져**(SYSTEM→유저 넘기는 이음매) 못 쓴다. 어차피 사람이 봐야 하는 화면이니 거기서 친다. 절차는 §1 터미널 규칙(포커스→타이핑→Enter 확인).

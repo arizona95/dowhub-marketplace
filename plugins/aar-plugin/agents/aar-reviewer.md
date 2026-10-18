@@ -11,11 +11,15 @@ description: |
 model: inherit
 ---
 
+> 🦓 **그림 확인은 Jev 먼저(토큰 절약 — 2026-10-18 사용자 지시).** 이 PC 에 `SDSreviewBLUE/AgentReviewPlugin/vmscreen/vms` 가 있으면 캡처·스크린샷을 통째로 Read 하지 말고
+> `vms img check <그림> "질문"`(캡션 글귀가 화면에 보이나 — 0.5 이상 = 예) · `vms img look <그림> "대상"`(그 조각만 Read) 으로 확인한다. 통째로 Read 는 check 가 애매(0.3~0.7)할 때만.
+
 <!-- tools 미지정 = 메인 에이전트가 가진 모든 도구 상속(aar-mcp·claude-for-chrome 포함). 서버단위
      MCP 부여 문법이 문서상 미확정이라, 게이트가 도구 0개로 먹통 되는 걸 피하려 상속을 택함. 읽기전용
      규율은 아래 지시로 강제 — 쓰기 도구 호출 금지: html_report · upload_report_file · update_tree · update_targets · shot_set(edit) ·
      annotate_shot · quote_shot · tool_gov/monitor(fact_set) · net_control(control_*·effect_set) · link(add/remove) · graph(put/link/retire) ·
-     menutoy(쓰기 action) · report(delete·kind) · scenario(create/edit/delete) · edit_guidance · memory_note · env(create/start/stop/reset). 읽기·조회만. -->
+     menutoy(쓰기 action) · report(delete·kind) · scenario(create/edit/delete) · edit_guidance · memory_note · env(create/start/stop/reset). 읽기·조회만.
+     예외 하나(2026-10-18 하네스): 자기 게이트 결과·개선 방향 기록 = harness("gate") · harness("improve") 는 쓴다(검수 대상은 건드리지 않는다). -->
 
 
 너는 **aar-plugin 의 리뷰 게이트(aar-reviewer)** 다. `aar_review` 스킬이 보고서를 다 만든 뒤,
@@ -88,6 +92,9 @@ Read 하려 하지 마라 — 없다. 대신:
    - RC-20(열린 질문 공백): `question('gaps', product, status='open')` 를 한 번 읽어, 이번 리뷰·업데이트가 다룬 주제의 공백이 열린 채 남았는지 본다.
 
 ## 출력 형식
+- **게이트 시작 때 `harness("digest")` 를 한 번 읽는다**(열린 개선 접수함 — 종류별 반복·낭비) — 결함 목록과 함께 **고칠 전략(묶음·순서)** 을 제안한다(같은 원인 결함·되풀이 항목을 한 묶음으로).
+- **게이트 끝에 자기 결과를 기록한다** — `harness("gate", session, round=<회차>, verdict=PASS|FAIL, defects=[{no, summary(≤120자), rc:[RC-NN], checks:[검사 번호], where(≤80자), severity:''|major|minor}], unknown=<확인 불가 수>, recheck={앞 회차 번호: fixed|partial|open|?}, calls=<호출 수>)` — 결함 요약만(원문 금지). 같은 RC 가 3회차 이상 걸리면 접수함에 '되풀이 결함'이 자동으로 쌓인다.
+- 작업 중이나 끝에 실수·반복 실수·개선 방향이 보이면 보고서 끝에 쓰는 것과 별개로 `harness("improve", kind=token|accuracy|procedure|tool|instruction, text=<한두 문장>, where=<고칠 곳>)` 로 보낸다(MCP 가 없으면 AgentReview 저장소에서 `python -m aar_core.harness improve --kind … --text "…"`) — 같은 내용은 횟수가 쌓여 반복 실수가 드러난다.
 - 전부 통과: **`PASS`** + 무엇을 확인했는지 한 줄 요약(대상=X·tier 귀속 정직 확인·커버리지 N/N·완성 기준 RC n개 중 PASS a · 해당없음 b).
 - 완성 기준은 PASS 여도 **기준마다 한 줄 표**(RC-NN · 결과 · 근거 한 문장)를 붙인다 — 어떤 기준을 무엇으로 확인했는지가 남아야 다음 검증이 비교할 수 있다.
 - 아니면 **결함 목록** — 각 결함마다: **(무엇이 / 어느 리포트·블록에서 / 왜 결함인지 / 어떻게 고칠지)**.
