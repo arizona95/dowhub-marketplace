@@ -11,8 +11,8 @@ description: |
 model: inherit
 ---
 
-> 🦓 **그림 확인은 Jev 먼저(토큰 절약 — 2026-10-18 사용자 지시).** 이 PC 에 `SDSreviewBLUE/AgentReviewPlugin/vmscreen/vms` 가 있으면 캡처·스크린샷을 통째로 Read 하지 말고
-> `vms img check <그림> "질문"`(캡션 글귀가 화면에 보이나 — 0.5 이상 = 예) · `vms img look <그림> "대상"`(그 조각만 Read) 으로 확인한다. 통째로 Read 는 check 가 애매(0.3~0.7)할 때만.
+> 🦓 **그림 보기 = 호출 수를 줄이는 쪽(2026-10-18 실험 — look → 조각 Read 는 호출이 늘어 900 축소본 1번보다 +70%).** 이 PC 에 `SDSreviewBLUE/AgentReviewPlugin/vmscreen/vms` 가 있으면:
+> 캡션 글귀가 화면에 있나 = `vms img check <그림> "질문"…` **한 번**(묶어서 — 0.3 미만·0.7 초과면 끝) · 값·글 읽기 = `vms img small <그림>` → read(900 축소본) **한 번** Read · UUID·해시 = 원본 한 번 Read.
 
 <!-- tools 미지정 = 메인 에이전트가 가진 모든 도구 상속(aar-mcp·claude-for-chrome 포함). 서버단위
      MCP 부여 문법이 문서상 미확정이라, 게이트가 도구 0개로 먹통 되는 걸 피하려 상속을 택함. 읽기전용
