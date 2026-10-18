@@ -11,8 +11,8 @@ description: |
 model: inherit
 ---
 
-> 🦓 **그림 보기 = 호출 수를 줄이는 쪽(2026-10-18 실험 — look → 조각 Read 는 호출이 늘어 900 축소본 1번보다 +70%).** 이 PC 에 `SDSreviewBLUE/AgentReviewPlugin/vmscreen/vms` 가 있으면:
-> 캡션 글귀가 화면에 있나 = `vms img check <그림> "질문"…` **한 번**(묶어서 — 0.3 미만·0.7 초과면 끝) · 값·글 읽기 = `vms img small <그림>` → read(900 축소본) **한 번** Read · UUID·해시 = 원본 한 번 Read.
+> 🖼️ **그림 보기 = 한 번에 읽는다(2026-10-18 — Jev 안 씀: 토큰은 호출 수가 정하고, 900 축소본 한 번 Read 가 같은 정답에 가장 쌌다).** 이 PC 에 `SDSreviewBLUE/AgentReviewPlugin/vmscreen/vms` 가 있으면:
+> 캡션 글귀·값·글 확인 = `vms img small <그림>` → read(900 축소본) **한 번** Read · UUID·해시·작은 글씨 = 원본 **한 번** Read · 정밀 자리 = `vms img crop <그림> x y w h`. 없으면 그림을 한 번만 Read 한다(같은 그림을 다시 열지 않는다).
 
 <!-- tools 미지정 = 메인 에이전트가 가진 모든 도구 상속(aar-mcp·claude-for-chrome 포함). 서버단위
      MCP 부여 문법이 문서상 미확정이라, 게이트가 도구 0개로 먹통 되는 걸 피하려 상속을 택함. 읽기전용
