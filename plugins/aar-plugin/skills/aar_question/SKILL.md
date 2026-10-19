@@ -15,7 +15,8 @@ description: |
 1. **규칙 받기(대화에서 처음 한 번)** — `question("guide")` → `rules`(웹 백그라운드 Claude 의 시스템 프롬프트 원문) · `schema`(답 모양) · `tools`.
    rules 의 'aar-read 도구' = `question("read", tool=…, args={…})`, 'StructuredOutput 으로 낸다' = `question("publish", …)`. **rules 를 그대로 따른다**(답 구성·그림 자리표 `[[fig:…]]`·구성도·남은 ?·단계 `[[step:N]]`).
 2. **읽기** — `question("read", tool=<이름>, args={…})` 로 필요한 만큼만. 같은 도구·같은 인자를 두 번 부르지 않는다. 구성도는 rules 대로 `diagram_guide` → `draw_diagram`.
-3. **내기** — `question("publish", question=<사용자 질문 그대로>, answer=<답 글>, steps=[…], gaps=[{gap, product}], product=<화면 맥락 — 없으면 빈 값>, conversation=<이어 묻기면 앞 응답의 conversation>)`.
+3. **내기** — `question("publish", question=<사용자 질문 그대로>, answer=<답 글>, steps=[…], gaps=[{gap, product}], product=<화면 맥락 — 없으면 빈 값>, conversation=<이어 묻기면 앞 응답의 conversation>, model=<너의 모델 id — 예 claude-opus-5-5>)`.
+   `model` 은 '답한 모델'로 웹 대화·공유 화면에 그대로 표시된다(비우면 'MCP 호출 측(모델 미기재)').
    서버가 웹과 같은 마무리를 한다(단계 검증 · 그림 풀기 · 질문 공백 기록 · 대화 저장 · 공유). 응답 `dropped`·`figures[].missing` 이 답 글과 어긋나면 고쳐서 다시 publish.
 4. **사용자에게** — 응답 `answer`(그림 자리는 그림 이름으로) 와 **`share` 링크를 그대로** 준다(단계가 있으면 `guide` 링크도). 주소를 손으로 만들지 않는다.
    이 대화는 웹 '지난 대화'에 'MCP' 표시로 남는다. 다음 질문은 `conversation` 을 넘겨 이어 묻는다.
