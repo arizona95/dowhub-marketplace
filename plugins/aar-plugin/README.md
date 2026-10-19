@@ -10,8 +10,9 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
   4트리와 영향 보고서를 갱신.
 - **`/aar_fix`** — 이 대화에서 지적받은 것을 근거로 리뷰 규범을 고친다. 마무리로 `aar-compounder`
   서브에이전트가 가이드 전체의 대전제를 감사한다.
-- **`/aar_question`** — AAR 자료에 **짧게 묻고 답**한다. 답과 함께 **포커스 가이드 링크**(dowmain.org/agentautoreview `?p=&tour=`)를 준다 —
-  열면 그 화면이 메뉴·표 칸·구성도 선을 하나씩 비추며 설명(웹 'AI에게 질문하기'와 같은 가이드, 로그인 불필요). aar-mcp `question` 도구.
+- **`/aar_question`** — AAR 자료에 묻고 답한다. 웹 'AI에게 질문하기'와 **같은 라이브러리**(같은 규칙·읽기 도구·그림·구성도·답 마무리 —
+  웹에서 바꾸면 여기도 바뀐다)이고 답을 쓰는 LLM 만 이 대화의 Claude. 답과 함께 **공유 링크**(로그인 없이 그 질문·답·그림을 읽는 chat.html?share=)를 준다.
+  aar-mcp `question`(guide → read → publish).
 - **`/aar_sensing`** — Agent Auto Sensing 랭킹 세션을 가져와 리뷰하고 카드마다 완료(On) 표시(매주).
 
 > 보고서 빌더·아카이브 집계 스크립트(`report.py`·`archive.py` 등)는 `scripts/` 에 있다 — 서버(operator)가 `AARPLUGIN_ROOT/scripts/report.py` 로 부른다.
