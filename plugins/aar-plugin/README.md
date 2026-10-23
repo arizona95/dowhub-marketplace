@@ -3,17 +3,17 @@
 AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atlassian 모델(`plugin.json` +
 `.mcp.json` 리모트 MCP + `skills/`).
 
-## 스킬 5종
+## 스킬 3종
 - **`/aar_review`** — env 적용 시나리오 **전수** 라이브 실증. 커버리지 원장으로 스코프를 강제해,
   전부 ✅/⛔ 되기 전엔 "완료" 불가(20%-완료-선언 재발 차단). 새 SaaS·대규모 업데이트 시.
 - **`/aar_update`** — 이 SaaS 를 **주기적(주 1회) 추적**. 지난번 대비 델타만 — 메뉴·세션·세팅·보존
-  4트리와 영향 보고서를 갱신.
-- **`/aar_fix`** — 이 대화에서 지적받은 것을 근거로 리뷰 규범을 고친다. 마무리로 `aar-compounder`
-  서브에이전트가 가이드 전체의 대전제를 감사한다.
-- **`/aar_question`** — AAR 자료에 묻고 답한다. 웹 'AI에게 질문하기'와 **같은 라이브러리**(같은 규칙·읽기 도구·그림·구성도·답 마무리 —
-  웹에서 바꾸면 여기도 바뀐다)이고 답을 쓰는 LLM 만 이 대화의 Claude. 답과 함께 **공유 링크**(로그인 없이 그 질문·답·그림을 읽는 chat.html?share=)를 준다.
-  aar-mcp `question`(guide → read → publish).
-- **`/aar_sensing`** — Agent Auto Sensing 랭킹 세션을 가져와 리뷰하고 카드마다 완료(On) 표시(매주).
+  4트리와 영향 보고서를 갱신. `/aar_update 센싱 카드 처리` = Agent Auto Sensing 랭킹 세션을 가져와 리뷰하고 카드마다 완료(On) 표시(매주 · 옛 `/aar_sensing`).
+- **`/aar_feedback`** — **피드백 창고**(AI 답 아래 '📮 피드백 주기'로 만든 카드 — aar-mcp `feedback` 도구)를 읽고 고친다.
+  자료 카드는 실측·보고서, 프로그램 카드는 AAR 저장소 코드 수정·커밋 → 해결 카드(보고서 rev 또는 fix 커밋 + 완결 문장)로 닫는다.
+  `/aar_feedback` = 열린 카드 전부 · `/aar_feedback fbk_…` = 그 카드 · `/aar_feedback <검색어>` = 검색에 걸린 카드.
+- **하네스 끝 단계**(`skills/_shared/refs/harness-end.md`) — 세 스킬이 끝날 때마다 돈다(옛 `/aar_fix`): 이 대화에서 지적받은 실수·개선 접수함의
+  반복 실수를 규범(`edit_guidance`)·완성 기준에 반영하고, 규범을 고쳤으면 `aar-compounder` 가 가이드 전체의 대전제를 감사한다.
+- AAR 자료에 묻고 답하기는 스킬 없이 aar-mcp `question`(guide → read → publish)으로 한다.
 
 > 보고서 빌더·아카이브 집계 스크립트(`report.py`·`archive.py` 등)는 `scripts/` 에 있다 — 서버(operator)가 `AARPLUGIN_ROOT/scripts/report.py` 로 부른다.
 
@@ -22,7 +22,7 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
 
 ## 서브에이전트 2종
 - **`aar-reviewer`** — 발행 직전 읽기전용 게이트(대상 드리프트·tier 귀속 정직성·커버리지·증거 3종).
-- **`aar-compounder`** — 가이드 코퍼스 전체의 대전제 감사(`/aar_fix` 마무리).
+- **`aar-compounder`** — 가이드 코퍼스 전체의 대전제 감사(하네스 끝 단계 마무리).
 
 ## 리모트 MCP
 - **.mcp.json** → **aar-mcp**(`https://dowhub.org/aar-mcp/`, OAuth). 설치 시 도구가 함께 붙고,
