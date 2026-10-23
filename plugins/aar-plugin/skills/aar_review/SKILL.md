@@ -70,6 +70,7 @@ allowed-tools:
    - 작업 중이나 끝에 실수·반복 실수·개선 방향이 보이면 보고서 끝에 쓰는 것과 별개로 `harness("improve", kind=token|accuracy|procedure|tool|instruction, text=<한두 문장>, where=<고칠 곳>)` 로 보낸다(MCP 가 없으면 AgentReview 저장소에서 `python -m aar_core.harness improve --kind … --text "…"`) — 같은 내용은 횟수가 쌓여 반복 실수가 드러난다.
 3. **호출 이력 자기점검**(AgentReview 저장소가 있는 PC 만): 끝나면 `AgentReviewPlugin/vmscreen/vms-audit --self`(서브에이전트로 찍었으면 `-a <agentId>` 마다)를 돌려 위반·토큰 요약(출력 그대로 — 짧다)을 완료 보고에 붙인다. 위반은 실행마다 개선 접수함으로 한 건씩 간다(같은 내용 = 횟수 +1) — 다음 `recall` 의 근거.
 4. 완료 보고에는 `coverage_ledger` 의 `table_md` 를 그대로 붙이고(✅/⛔/사유), **`aar-reviewer` 가 PASS 했다는 사실**도 적는다. 커버리지·미완료·검증결과를 숨기지 마라.
+5. **하네스 끝 단계** — `skill("get", "_shared/refs/harness-end.md")`(플러그인 폴더에선 `skills/_shared/refs/harness-end.md`) 를 그대로 따른다(이번 대화에서 지적받은 실수·반복 실수를 규범에 반영 · 옛 `/aar_fix`).
 
 > 🎯 **이 리뷰의 대상·tier 목표는 "무엇을 리뷰하라"는 요청·env 에서 온다(스킬이 특정 제품/tier 를 하드코딩하지 않는다).** 그 배정을 **첫 턴에 명확히 잡고** 모든 리포트의 주어를 그 대상으로 유지하라 — 그래야 `aar-reviewer` 의 드리프트/tier 게이트에 안 걸린다.
 
