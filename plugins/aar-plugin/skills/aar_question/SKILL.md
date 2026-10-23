@@ -18,10 +18,11 @@ description: |
 3. **내기** — `question("publish", question=<사용자 질문 그대로>, answer=<답 글>, steps=[…], gaps=[{gap, product}], product=<화면 맥락 — 없으면 빈 값>, conversation=<이어 묻기면 앞 응답의 conversation>, model=<너의 모델 id — 예 claude-opus-5-5>)`.
    `model` 은 '답한 모델'로 웹 대화·공유 화면에 그대로 표시된다(비우면 'MCP 호출 측(모델 미기재)').
    서버가 웹과 같은 마무리를 한다(단계 검증 · 그림 풀기 · 질문 공백 기록 · 대화 저장 · 공유). 응답 `dropped`·`figures[].missing` 이 답 글과 어긋나면 고쳐서 다시 publish.
+   gaps 는 질문 공백(후보)으로 기록될 뿐이다 — **업데이트로 넘기는 것은 사람이 큰 창 답 아래 '📮 피드백 주기'로 만든 피드백 카드뿐**이고 `/aar_update` 는 피드백 창고(`feedback("list")`)만 본다(2026-10-23). 사용자가 "이거 업데이트 때 채워" 라고 하면 큰 창 링크에서 그 차례의 📮 피드백 주기를 누르라고 안내한다.
 4. **사용자에게** — 응답 `answer`(그림 자리는 그림 이름으로) 와 **`share` 링크를 그대로** 준다(단계가 있으면 `guide` 링크도). 주소를 손으로 만들지 않는다.
    이 대화는 웹 '지난 대화'에 'MCP' 표시로 남는다. 다음 질문은 `conversation` 을 넘겨 이어 묻는다.
 
 ## 절대 규칙
-- **읽기만** — 트리·판정·연결을 고치지 않는다(질문 공백 기록만 예외). 고쳐야 할 게 보이면 답 끝에 한 줄로 알린다.
+- **읽기만** — 트리·판정·연결을 고치지 않는다(질문 공백 기록만 예외 — 답 못 한 부분을 후보로 남기는 것 · 피드백 카드는 사람이 만든다). 고쳐야 할 게 보이면 답 끝에 한 줄로 알린다.
 - **날조 금지** — read 에 없는 경로·key·id·판정·그림 주소를 쓰지 않는다. 확인 못 한 것은 '?' 로 남기고 gaps 에 적는다.
-- 질문 공백 손으로 넣기·닫기(aar_update 용): `question("gap_add", product, question, gaps=[…])` · `question("gap_close", id, status, resolution, reports)`.
+- 질문 공백(후보) 손으로 넣기·닫기: `question("gap_add", product, question, gaps=[…])` · `question("gap_close", id, status, resolution, reports)`.
