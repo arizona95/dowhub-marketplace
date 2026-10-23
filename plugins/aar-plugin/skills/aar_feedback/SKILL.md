@@ -34,6 +34,7 @@ allowed-tools:
 2. **시작 댓글** — `feedback("comment", id, text=<무엇을 하려나 — 짧게>, model=<너의 모델 이름 — 예 "Claude Opus 5.5">)`. 막힐 때·한 단계 끝날 때도 같은 방법으로 남긴다(에이전트 댓글 — 사람이 창고에서 본다).
 3. **일**
    - **자료 카드(실측·캡처 · 문서화 · 데이터 정리)** — 화면·문서를 실제로 열어 캡처(`skill("get", "aar_review/refs/capture-and-workflow.md")` 대로 내 화면을 떠서 /api/v1/evidence 로 POST) → 트리 노드·판정 칸·데이터 보존 노드·보고서 중 답이 될 곳에 넣고 보고서 새 버전(`html_report`)을 낸다.
+     🎚 **판정 확실도(2026-10-23 사용자 결정)** — 판정은 O/X/-/? 넷 그대로. O·X·- 를 적을 때마다 확실도를 **같은 호출에** 함께 적는다(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`): `certainty` = `high`(상 — 그 조건 그대로 실측했거나, Team 실측을 공식문서로 Enterprise 차이까지 닫아 다른 해석이 남지 않음) · `mid`(중 — 근거가 한쪽뿐: 공식문서만, 또는 문서 추적 없는 Team 실측만) · `low`(하 — 근거는 판정을 가리키지만 캡처에 근거가 있는 다른 해석이 남음), `certainty_why` = 낮춘 까닭 완결 문장(중·하 필수). ? 는 판정을 받치는 캡처가 전혀 없을 때만이고 확실도를 주지 않는다(서버가 거부). 판정을 바꾸면 확실도도 다시 적는다(안 주면 미평가). 화면: 상 실선 · 중 점선 · 하 회색.
    - **프로그램 카드(UI · 기능 · 버그)** — AAR 저장소(SDSreviewBLUE) 코드를 고치고 테스트한 뒤 커밋한다.
 4. **닫기** — `feedback("resolve", id, reports=["rpt_…@n"] 와/또는 fix="<커밋 해시·링크·무엇을 바꿨나>", note=<어떻게 고쳤나 — 완결 문장>, model=<너의 모델 이름>, expected_rev=<get 의 rev>)` = 해결 카드(그 카드가 고른 질문 공백도 함께 닫힌다 · 카드 이력에 "🤖 <model> 가 해결로 바꿨습니다" 로 남는다).
    CONFLICT 면 사람이 그 사이 고친 것 — 다시 `get` 해서 계획·댓글을 읽고 따른다.
