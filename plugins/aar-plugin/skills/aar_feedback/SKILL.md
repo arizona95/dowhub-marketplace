@@ -34,6 +34,8 @@ allowed-tools:
 2. **시작 댓글** — `feedback("comment", id, text=<무엇을 하려나 — 짧게>, model=<너의 모델 이름 — 예 "Claude Opus 5.5">)`. 막힐 때·한 단계 끝날 때도 같은 방법으로 남긴다(에이전트 댓글 — 사람이 창고에서 본다).
 3. **일**
    - **자료 카드(실측·캡처 · 문서화 · 데이터 정리)** — 화면·문서를 실제로 열어 캡처(`skill("get", "aar_review/refs/capture-and-workflow.md")` 대로 내 화면을 떠서 /api/v1/evidence 로 POST) → 트리 노드·판정 칸·데이터 보존 노드·보고서 중 답이 될 곳에 넣고 보고서 새 버전(`html_report`)을 낸다.
+     🎚 **판정 확실도 = 보고서 검증 하네스가 매긴다(2026-10-24 사용자 결정 — 명제 없앰, 보고서 자체가 기술 블로그)** — 판정은 O/X/-/? 넷 그대로. 판정 칸(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`)엔 판정·근거·이유·확인 계정을 적고, 확실도(상·중·하 + 까닭)는 보고서를 발행한 뒤 **검증 하네스**(`report_inspect` — 독립 검사자가 검사표 7항목으로 최대 4회차 · 닫히는 회차가 그 보고서가 받친 칸 확실도를 쓴다)가 정한다 — 절차 `skill("get", "_shared/refs/report-harness.md")` 를 그대로 따른다. ? 는 판정을 받치는 캡처가 전혀 없을 때만. 화면: 상 선명 실선 · 중 흐린 점선 · 하 회색 · 미평가 얇은 회색 테.
+    🔁 **발행 뒤 검증 하네스(2026-10-24 — 명제 대신)**: 발행할 때마다 `report_inspect("start", session, scenario)` → FAIL 이면 `failures[].fix` 를 모두 반영해 다시 `html_report` → 다시 start(최대 4회차 · 4회차도 FAIL 이면 남은 실패가 보고서에 실린 채 닫힘 — 완료 보고에 그대로 적는다) · 닫혀야 원장 ✅(`_shared/refs/report-harness.md`). 다른 보고서를 끌어 쓰면 `[[rep:<세션>/<시나리오>#<blk_…|scene-N>|이름]]`.
    - **프로그램 카드(UI · 기능 · 버그)** — AAR 저장소(SDSreviewBLUE) 코드를 고치고 테스트한 뒤 커밋한다.
 4. **닫기** — `feedback("resolve", id, reports=["rpt_…@n"] 와/또는 fix="<커밋 해시·링크·무엇을 바꿨나>", note=<어떻게 고쳤나 — 완결 문장>, model=<너의 모델 이름>, expected_rev=<get 의 rev>)` = 해결 카드(그 카드가 고른 질문 공백도 함께 닫힌다 · 카드 이력에 "🤖 <model> 가 해결로 바꿨습니다" 로 남는다).
    CONFLICT 면 사람이 그 사이 고친 것 — 다시 `get` 해서 계획·댓글을 읽고 따른다.
