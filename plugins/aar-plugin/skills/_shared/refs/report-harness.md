@@ -8,15 +8,15 @@
 옛 '명제'(판정 칸마다 주장·장면·검사를 따로 쓰던 것)는 없다 — **보고서 자체가 기술 블로그(주장 + 근거 + 추론)**이고, 그 보고서를 검사자가 검사한다.
 고리는 **보고서 하나에 한 번**이다(판정 칸마다 아님).
 
-## 순서 (html_report 를 부를 때마다)
-1. `html_report(…, lead=…)` 로 발행한다(lead = 기술 블로그 본문 — plain_title · summary_md(**굵은 결론**) · scenes(그림마다 앞 글·뒤 글) · conclusion).
-2. `report_inspect("start", session, scenario)` — 독립 검사자(보고서 글·그림만 독자처럼 읽는 Claude)가 검사표 7항목을 통과/실패 + 고칠 지시(fix)로 매긴다.
-   서버가 최대 80초 기다려 준다. 끝나지 않았으면 `report_inspect("wait", job=…)` 한 번(되풀이해 묻지 않는다).
-3. `verdict` 가 FAIL 이면 `failures[].fix` 를 **모두** 반영해 다시 `html_report` 로 발행하고 2 로 돌아간다. **최대 4회차.**
+## 순서 (report("publish") 를 부를 때마다)
+1. `report("publish", …, lead=…)` 로 발행한다(lead = 기술 블로그 본문 — plain_title · summary_md(**굵은 결론**) · scenes(그림마다 앞 글·뒤 글) · conclusion).
+2. `report("inspect_start", session, scenario)` — 독립 검사자(보고서 글·그림만 독자처럼 읽는 Claude)가 검사표 7항목을 통과/실패 + 고칠 지시(fix)로 매긴다.
+   서버가 최대 80초 기다려 준다. 끝나지 않았으면 `report("inspect_wait", job=…)` 한 번(되풀이해 묻지 않는다).
+3. `verdict` 가 FAIL 이면 `failures[].fix` 를 **모두** 반영해 다시 `report("publish")` 로 발행하고 2 로 돌아간다. **최대 4회차.**
 4. PASS 면 끝. 4회차도 FAIL 이면 남은 실패가 보고서 맨 위에 실린 채 닫힌다(조용히 통과시키지 않는다 — 완료 보고에도 남은 실패를 그대로 적는다).
 5. 닫히는 회차의 검사가 이 보고서가 받친 판정 칸의 **확실도(상·중·하 + 까닭)를 칸에 쓴다** — 확실도는 손으로 정하지 않는다(검사자 몫).
    판정 칸(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`)은 판정·근거·이유·확인 계정만 적고 certainty 는 비워 둬도 된다.
-🚨 2026-10-24 뒤 발행한 보고서는 고리가 닫혀야(통과 또는 4회차 남은 실패) `coverage_ledger` 가 완료(✅)로 센다 — 행의 `harness` 칸이 까닭.
+🚨 2026-10-24 뒤 발행한 보고서는 고리가 닫혀야(통과 또는 4회차 남은 실패) `scenario("ledger")` 가 완료(✅)로 센다 — 행의 `harness` 칸이 까닭.
 
 ## 검사표 (검사자가 보는 것 = 쓸 때 지킬 것)
 본문 = lead(머리말·장면·정리) — 1·5·6·7 은 본문만 본다. 접힌 부록(blocks 의 원래 캡처·캡션·표)은 근거 원자료라 3·4 의 근거로만 쓴다: 부록에만 있는 그림·조건을 결론에 쓰려면 본문 장면으로 옮겨 온다.

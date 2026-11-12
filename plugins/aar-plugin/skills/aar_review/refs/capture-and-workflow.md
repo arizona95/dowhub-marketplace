@@ -1,6 +1,6 @@
 # 캡처·워크플로 참조 (툴에서 스킬로 이관 — 2026-08)
 
-> 전엔 `save_evidence`·`review_playbook`·`scenario_start` 의 browser_gate 가 **MCP 툴이 문자열로
+> 전엔 `save_evidence`·`review_playbook`·`scenario("start")` 의 browser_gate 가 **MCP 툴이 문자열로
 > 돌려주던 안내문**이었다. 부작용이 없는 순수 절차라 스킬(여기)로 옮겼다. **툴은 부작용만, 절차는 스킬.**
 
 ## 📸 증적 캡처 = 내가 본 화면을 내가 떠서 올린다
@@ -14,7 +14,7 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
 🚫 URL 에 `&capture=` 를 붙이지 마라 — 로드 순간 찍는 구조라 콘솔을 하드 로드해 RDP 를 끊고
 검은 화면이 찍힌다.
 
-**(B) 그 밖의 화면(공식문서 등) → 내가 떠서 POST** — 공식문서는 올린 뒤 `quote_shot(label, out_label, source_url, quotes=[{x,y,w,h,quote}], proves)` 로 문서 인용 세트를 만들고 응답의 `doc_block` 을 html_report 의 doc 블록에 넣는다. 🚫 캡처에 형광·빨간 네모를 칠해서 올리지 마라(좌표·인용문은 데이터로 — 공통수칙 §3-0-1).
+**(B) 그 밖의 화면(공식문서 등) → 내가 떠서 POST** — 공식문서는 올린 뒤 `shot("quote", label, out_label, source_url, quotes=[{x,y,w,h,quote}], proves)` 로 문서 인용 세트를 만들고 응답의 `doc_block` 을 report("publish") 의 doc 블록에 넣는다. 🚫 캡처에 형광·빨간 네모를 칠해서 올리지 마라(좌표·인용문은 데이터로 — 공통수칙 §3-0-1).
 - 올리는 곳: `POST https://dowmain.org/agentreview/api/v1/evidence` · body `{"label": "<라벨>", "image": "<dataURL>", "session": "<이번 세션명>", "env": "<env>", "scenario": "<시나리오 id>", "url": "<찍은 화면 URL>"}`
   🚨 **session 은 필수다(없으면 400).** 서버가 캡처를 그 세션에 귀속시켜(사이드카) 리포트 빌드 때 **같은 세션 증적만** 라벨로 고른다 —
   다른 세션의 동명 캡처는 섞이지 않는다. 응답의 `evidence_id` 를 받아 두면 `shot` 블록에 `evidence_id` 로 정확히 그 파일을 가리킬 수 있다(재촬영 시 새 id).
@@ -37,14 +37,14 @@ RDP 가 재접속하지 않는다**. 상단 캡처바 라벨 칸에 라벨을 �
   ① 명령을 입력한 뒤 **터미널 화면 영역을 한 번 클릭해 포커스** ② **Enter 를 2~3번**(RDP/Guacamole 는 첫 Enter 가 씹히는 경우가 많다) ③ **스크린샷으로 프롬프트가 다음 줄로 넘어갔는지** 확인 ④ 오래 걸리면 **완료 전 다음 명령 금지**.
 - 🚨🚨 **CLI형 SaaS(Claude CLI·Codex CLI·gemini-cli 등)는 터미널 자체가 피평가 앱이다** — 로그인·프롬프트 입력·응답 확인도 가시 RDP 터미널에서 한다. **shell/az 로 CLI 를 돌린 출력은 증적으로 절대 인정 못 받는다**(사용자가 로그인한 실제 세션이 아니라 "로그인 안 됨" 같은 거짓 실패가 뜬다 — 2026-07-23 실사고).
 - 🚨🚨 **별도 관측주체(사내 프록시·OTel/Loki·Compliance)가 "봤다/기록했다"는 증적을 스크립트로 조회해 print 한 화면은 절대 금지**(2026-07 moncanary.py 사고). 프록시 관측 = 콘솔 L7-proxy 뷰어에 마커 필터→flow 클릭→요청/응답 detail 이 뜬 그 화면. OTel = log-server(Grafana/Loki Explore)에 쿼리→이벤트가 뜬 그 화면.
-- 🚨 **콘솔 조작 = MCP 도구** — L7 정책 등록/삭제·flow 검색·clear/archive 는 `policy("create"|"list"|"delete", env, …)` · `clear_capture` · `archive_capture`. **모든 시나리오 끝에 archive_capture + cleanup(등록한 정책룰 `policy("delete", env, rule_id=…)`)을 try/finally 로 강제** — 다음 before 오염·사용자 세션 훼손 방지.
+- 🚨 **콘솔 조작 = MCP 도구** — L7 정책 등록/삭제·flow 검색·clear/archive 는 `proxy("rule_add"|"list"|"delete", env, …)` · `proxy("capture_clear")` · `proxy("capture_archive")`. **모든 시나리오 끝에 proxy("capture_archive") + cleanup(등록한 정책룰 `proxy("rule_remove", env, rule_id=…)`)을 try/finally 로 강제** — 다음 before 오염·사용자 세션 훼손 방지.
 - 🖥️ **어느 PC 에서 할지** — user-window-pc(Windows) / user-linux-pc(Linux), 관리자 행위는 admin-window-pc. 대상이 한쪽 OS 에만 있으면 **반드시 그 PC**(미지원 OS 에 억지로 = 대상 결함이 아니라 PC 선택 오류).
-- **부정(negative) 결론 전 체크리스트**: "안 보임 → 안 됨"으로 단정 금지. ① clear_capture 했나 ② 올바른 host/표면·flow 필터인가 ③ 충분히 기다렸나(설치·전파 지연) ④ 다른 채널(WS/SSE·다른 도메인·L4)로 나간 건 아닌가 — 넷 다 짚은 뒤에만 "미관측" 판정.
+- **부정(negative) 결론 전 체크리스트**: "안 보임 → 안 됨"으로 단정 금지. ① proxy("capture_clear") 했나 ② 올바른 host/표면·flow 필터인가 ③ 충분히 기다렸나(설치·전파 지연) ④ 다른 채널(WS/SSE·다른 도메인·L4)로 나간 건 아닌가 — 넷 다 짚은 뒤에만 "미관측" 판정.
 - **4단계 규율**: ① 실험(녹화 전 메커니즘이 진짜 되는지 하드증거로, 행동 전/후 *변화*를 둘 다 관측) ② 정리(실제로 본 것만 — 여기 없는 건 보고서에도 못 쓴다) ③ 라이브 캡처 ④ 보고서. **🚨 프레임 없으면 주장 없음.**
 
 ## 리뷰 워크플로 (요약)
 1. 환경 확인/생성 → `env("get", name)` 의 `state` 가 **running** 이 될 때까지 대기(생성·기동은 수 분)
-2. 대상 확정 → 적용 시나리오는 `coverage_ledger` 가 계산해준다(스코프 계약)
-3. `scenario_start(env, id)` → 라이브 수행 → 캡처 POST
-4. 리포트: S0/S1/S2 = `html_report`, S3 = 문서스킬로 조판 → `upload_report_file`(content_b64 없이 → curl 업로드, 서버가 골격 검사)
+2. 대상 확정 → 적용 시나리오는 `scenario("ledger")` 가 계산해준다(스코프 계약)
+3. `scenario("start", env=<env>, id=<id>)` → 라이브 수행 → 캡처 POST
+4. 리포트: S0/S1/S2 = `report("publish")`, S3 = 문서스킬로 조판 → `report("upload")`(content_b64 없이 → curl 업로드, 서버가 골격 검사)
 5. 확인: `report("list", session, env)` 의 실데이터로 보고(추측 금지)

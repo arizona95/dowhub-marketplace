@@ -12,7 +12,7 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
   자료 카드는 실측·보고서, 프로그램 카드는 AAR 저장소 코드 수정·커밋 → 해결 카드(보고서 rev 또는 fix 커밋 + 완결 문장)로 닫는다.
   `/aar_feedback` = 열린 카드 전부 · `/aar_feedback fbk_…` = 그 카드 · `/aar_feedback <검색어>` = 검색에 걸린 카드.
 - **하네스 끝 단계**(`skills/_shared/refs/harness-end.md`) — 세 스킬이 끝날 때마다 돈다(옛 `/aar_fix`): 이 대화에서 지적받은 실수·개선 접수함의
-  반복 실수를 규범(`edit_guidance`)·완성 기준에 반영하고, 규범을 고쳤으면 `aar-compounder` 가 가이드 전체의 대전제를 감사한다.
+  반복 실수를 규범(`guidance("edit")`)·완성 기준에 반영하고, 규범을 고쳤으면 `aar-compounder` 가 가이드 전체의 대전제를 감사한다.
 - AAR 자료에 묻고 답하기는 스킬 없이 aar-mcp `question`(guide → read → publish)으로 한다.
 
 > 보고서 빌더·아카이브 집계 스크립트(`report.py`·`archive.py` 등)는 `scripts/` 에 있다 — 서버(operator)가 `AARPLUGIN_ROOT/scripts/report.py` 로 부른다.
