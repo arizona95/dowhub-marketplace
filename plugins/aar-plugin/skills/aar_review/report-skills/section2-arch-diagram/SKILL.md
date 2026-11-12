@@ -6,6 +6,8 @@
 > 🚨 **HTML/SVG 를 손으로 그려 캡처하거나 PNG 를 `report("upload")` 로 올리지 않는다**(2026-09-28 사용자 결정 — "그래프 그리는 게 지금 다 사진으로 되어 있는데,
 > 그러지 말고 진짜 그래프 객체로 저장해줘"). 옛 사진 그래프는 모두 데이터로 옮겨졌다.
 
+> 🆕 **S3 종합 보고서 2절 서비스 구성도는 archify 로 그린다(2026-11-02)** — `~/.claude/skills/archify` 로 architecture 사양 JSON 을 쓰고 `node bin/archify.mjs validate architecture <사양> --quality showcase --json`(오류·경고 0) → `deliver architecture <사양> <html> --quality showcase` → 사양·html 을 `aar_core/netmap_archify/<제품>/<slug>.json` · `operator/static/netmap/<제품>/<slug>.html` 에 두고(git add -f) 웹 보고서는 블록 `{"type":"diagram","map":"<제품>/<slug>","caption":…}` · docx 는 그 html 의 svg 를 도구 줄·범례 없이 PNG 로 떠서(device_scale 2) 넣는다. 상자·선은 이번 보고서 근거에 있는 사실만(실측 = 실선 · 문서 = dashed), 사내망/벤더 영역 boundary, 상자 12 이하. 아래 Graph 데이터 절차는 형태별 관계 그래프(S1-session-tree)·별첨용으로만 쓴다.
+
 ---
 
 ## 0. 트리거

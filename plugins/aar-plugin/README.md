@@ -4,12 +4,12 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
 `.mcp.json` 리모트 MCP + `skills/`).
 
 ## 스킬 3종
-- **`/aar_review`** — env 적용 시나리오 **전수** 라이브 실증. 커버리지 원장으로 스코프를 강제해,
-  전부 ✅/⛔ 되기 전엔 "완료" 불가(20%-완료-선언 재발 차단). 새 SaaS·대규모 업데이트 시.
+- **`/aar_review`** — Path 보안 리뷰. 목적마다 Path 를 계획(`path("plan")`) → 걷기(`path("walk")` · 감사자가 걸음 경계에서 살핌)
+  → 부산물 계산(`path("project")` — 지도·트리·연결·보고서·판정). 계획된 Path 가 다 걸리기 전엔 "완료" 불가. 새 SaaS·대규모 업데이트 시.
 - **`/aar_update`** — 이 SaaS 를 **주기적(주 1회) 추적**. 지난번 대비 델타만 — 메뉴·세션·세팅·보존
-  4트리와 영향 보고서를 갱신. `/aar_update 센싱 카드 처리` = Agent Auto Sensing 랭킹 세션을 가져와 리뷰하고 카드마다 완료(On) 표시(매주 · 옛 `/aar_sensing`).
+  바뀐 대상만 Path 로 다시 걸어 트리·보고서를 다시 계산. `/aar_update 센싱 카드 처리` = Agent Auto Sensing 랭킹 세션을 가져와 리뷰하고 카드마다 완료(On) 표시(매주 · 옛 `/aar_sensing`).
 - **`/aar_feedback`** — **피드백 창고**(AI 답 아래 '📮 피드백 주기'로 만든 카드 — aar-mcp `feedback` 도구)를 읽고 고친다.
-  자료 카드는 실측·보고서, 프로그램 카드는 AAR 저장소 코드 수정·커밋 → 해결 카드(보고서 rev 또는 fix 커밋 + 완결 문장)로 닫는다.
+  자료 카드는 Path 실측·보고서, 프로그램 카드는 AAR 저장소 코드 수정·커밋 → 해결 카드(보고서 rev 또는 fix 커밋 + 완결 문장)로 닫는다.
   `/aar_feedback` = 열린 카드 전부 · `/aar_feedback fbk_…` = 그 카드 · `/aar_feedback <검색어>` = 검색에 걸린 카드.
 - **하네스 끝 단계**(`skills/_shared/refs/harness-end.md`) — 세 스킬이 끝날 때마다 돈다(옛 `/aar_fix`): 이 대화에서 지적받은 실수·개선 접수함의
   반복 실수를 규범(`guidance("edit")`)·완성 기준에 반영하고, 규범을 고쳤으면 `aar-compounder` 가 가이드 전체의 대전제를 감사한다.
@@ -21,8 +21,8 @@ AI 앱 **보안 리뷰 워크플로**를 Claude Code 플러그인 하나로. Atl
 > 실제 개수는 `skill("list")`(MCP) 로 확인한다.
 
 ## 서브에이전트 2종
-- **`aar-reviewer`** — 발행 직전 읽기전용 게이트(대상 드리프트·tier 귀속 정직성·커버리지·증거 3종).
-- **`aar-compounder`** — 가이드 코퍼스 전체의 대전제 감사(하네스 끝 단계 마무리).
+- **`aar-reviewer`** — 발행 직전 읽기전용 게이트(대상 드리프트·tier 귀속 정직성·Path 커버리지·원복·증거 3종·완성 기준).
+- **`aar-compounder`** — 가이드 코퍼스 전체의 대전제 감사(하네스 끝 단계 마무리 · 없는 도구·손 편집 지시 포함).
 
 ## 리모트 MCP
 - **.mcp.json** → **aar-mcp**(`https://dowhub.org/aar-mcp/`, OAuth). 설치 시 도구가 함께 붙고,

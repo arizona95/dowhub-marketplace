@@ -33,9 +33,9 @@ allowed-tools:
 1. **읽기** — `feedback("get", id)` → 카드(제목 · gap = 자료에 없던 것·문제 · plan = 실측 계획(있으면 사람이 쓴 것 그대로 한다) · 태그 · 나온 대화)와 댓글. **사람 댓글(`human_comments`)을 먼저** 읽는다 — 계획을 고치거나 범위를 좁힌 말이 거기 있다.
 2. **시작 댓글** — `feedback("comment", id, text=<무엇을 하려나 — 짧게>, model=<너의 모델 이름 — 예 "Claude Opus 5.5">)`. 막힐 때·한 단계 끝날 때도 같은 방법으로 남긴다(에이전트 댓글 — 사람이 창고에서 본다).
 3. **일**
-   - **자료 카드(실측·캡처 · 문서화 · 데이터 정리)** — 화면·문서를 실제로 열어 캡처(`skill("get", "aar_review/refs/capture-and-workflow.md")` 대로 내 화면을 떠서 /api/v1/evidence 로 POST) → 트리 노드·판정 칸·데이터 보존 노드·보고서 중 답이 될 곳에 넣고 보고서 새 버전(`report("publish")`)을 낸다.
-     🎚 **판정 확실도 = 보고서 검증 하네스가 매긴다(2026-10-24 사용자 결정 — 명제 없앰, 보고서 자체가 기술 블로그)** — 판정은 O/X/-/? 넷 그대로. 판정 칸(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`)엔 판정·근거·이유·확인 계정을 적고, 확실도(상·중·하 + 까닭)는 보고서를 발행한 뒤 **검증 하네스**(`report("inspect_start")` — 독립 검사자가 검사표 7항목으로 최대 4회차 · 닫히는 회차가 그 보고서가 받친 칸 확실도를 쓴다)가 정한다 — 절차 `skill("get", "_shared/refs/report-harness.md")` 를 그대로 따른다. ? 는 판정을 받치는 캡처가 전혀 없을 때만. 화면: 상 선명 실선 · 중 흐린 점선 · 하 회색 · 미평가 얇은 회색 테.
-    🔁 **발행 뒤 검증 하네스(2026-10-24 — 명제 대신)**: 발행할 때마다 `report("inspect_start", session, scenario)` → FAIL 이면 `failures[].fix` 를 모두 반영해 다시 `report("publish")` → 다시 start(최대 4회차 · 4회차도 FAIL 이면 남은 실패가 보고서에 실린 채 닫힘 — 완료 보고에 그대로 적는다) · 닫혀야 원장 ✅(`_shared/refs/report-harness.md`). 다른 보고서를 끌어 쓰면 `[[rep:<세션>/<시나리오>#<blk_…|scene-N>|이름]]`.
+   - **자료 카드(실측·캡처 · 문서화 · 데이터 정리)** — 답이 화면에 있으면 그 확인을 목적으로 Path 를 계획해 걷는다(`skill("get", "aar_review")` Phase 1~N — `path("plan")` → `path("walk")` → `path("project")`). 트리 노드·판정 칸·연결·보고서 새 버전은 그 Path 에서 계산된다 — 손으로 넣지 않는다. 답이 공식 문서에 있으면 `kind="research"` Path 로 남긴다.
+     🎚 **판정 확실도 = 보고서 검증 하네스가 매긴다** — 판정은 O/X/-/? 넷 그대로. 판정 칸은 판정 Path 를 `path("project")` 할 때 그 Path 의 고리 사진을 근거로 적히고, 확실도(상·중·하 + 까닭)는 **검증 하네스**(독립 검사자가 검사표로 최대 4회차 · 닫히는 회차가 그 보고서가 받친 칸 확실도를 쓴다)가 정한다 — `skill("get", "_shared/refs/report-harness.md")`. ? 는 판정을 받치는 캡처가 전혀 없을 때만.
+     🔁 **검증 하네스**: 판정 Path 는 `path("project")` 가 발행 뒤 검사 회차까지 돈다(최대 4회차 · 4회차도 FAIL 이면 남은 실패가 보고서에 실린 채 닫힘 — 완료 보고에 그대로 적는다 · `_shared/refs/report-harness.md`).
    - **프로그램 카드(UI · 기능 · 버그)** — AAR 저장소(SDSreviewBLUE) 코드를 고치고 테스트한 뒤 커밋한다.
 4. **닫기** — `feedback("resolve", id, reports=["rpt_…@n"] 와/또는 fix="<커밋 해시·링크·무엇을 바꿨나>", note=<어떻게 고쳤나 — 완결 문장>, model=<너의 모델 이름>, expected_rev=<get 의 rev>)` = 해결 카드(그 카드가 고른 질문 공백도 함께 닫힌다 · 카드 이력에 "🤖 <model> 가 해결로 바꿨습니다" 로 남는다).
    CONFLICT 면 사람이 그 사이 고친 것 — 다시 `get` 해서 계획·댓글을 읽고 따른다.
@@ -48,6 +48,6 @@ allowed-tools:
 - **하네스 끝 단계** — `skill("get", "_shared/refs/harness-end.md")`(플러그인 폴더에선 `skills/_shared/refs/harness-end.md`) 를 그대로 따른다.
 
 ## 절대 규칙
-- off-screen 금지 — 내가 직접 열어 본 것만. 캡처는 내 화면을 떠서 /api/v1/evidence 로 POST.
+- off-screen 금지 — 실제로 본 화면만. 화면 행위의 기록은 Path 로만 남긴다(손 캡처·손 판정 금지).
 - 날조 금지 — 해결 카드의 note·reports·fix 는 이번에 실제로 한 것만. 고치지 못했으면 열어 둔다.
 - 카드가 말하지 않은 일로 번지지 않는다 — 그 카드의 gap·plan·사람 댓글이 범위다.
