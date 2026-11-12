@@ -37,13 +37,13 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
                                                         ▼
                          ③ 루프: 작업 하나씩 고침 → 고치다 새 변경이 생기면 목록에 추가 → 목록이 빌 때까지
                                                         ▼
-                         기록: 요약·작업 목록·결과를 memory_note, update_targets 로 남은 due·낡은 묶음 확인
+                         기록: 요약·작업 목록·결과를 memory("note"), update_targets 로 남은 due·낡은 묶음 확인
 ```
 
 - 단계는 **두 덩어리**다: **(A) 요약·결정**(①②) 과 **(B) 업데이트 루프**(③). A 가 끝나 작업 목록이 확정되기 전에는 아무것도 고치지 않는다.
 - 🚫 **전수 순회 금지.** 모든 트리·항목·보고서를 차례로 다시 찍지 않는다. 작업 목록에 없는 대상은 건드리지 않는다.
 - 🚨 **새 표면(세션·이용 형태)·범위 변경도 업데이트다**(2026-10-17 사용자 "지금 이것도 CLI 추가가 업데이트잖아?"). 그 표면에 시나리오 실증이 많이 필요해도
-  aar_review 로 **넘겨 버리지 않는다** — 점검표·작업 목록·루프는 이 스킬이 쥐고, 시나리오 실증(coverage_ledger·scenario_start·html_report)은 작업 목록의 한 종류로 넣는다.
+  aar_review 로 **넘겨 버리지 않는다** — 점검표·작업 목록·루프는 이 스킬이 쥐고, 시나리오 실증(scenario("ledger")·scenario("start")·report("publish"))은 작업 목록의 한 종류로 넣는다.
   제품을 처음 리뷰할 때만 aar_review 로 전수.
 
 ## 업데이트 대상 — 계단식(폴더)으로 있다 = 제품 데이터 지도
@@ -86,7 +86,7 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 | 트리 변화 | `tree("changelog", tree_id, since=<지난 추적일>)` | 지난 추적 이후 트리 노드 +/−/~ |
 | 문서 변화 | 문서 카드 URL 을 실제로 열고 `menutoy("web_check", product, url, html=<본문>)` → same·changed·unreachable | 공식문서(정책·가격·보안) 문구 변경 |
 | 벤더 변경 공지 | 에이전트 센싱(aas) 기록·릴리스 노트(공식 URL 을 직접 열어 확인한 것만) | 새 기능·관리자 설정 추가·변경 |
-| **센싱 카드** | `sensing_ranking("latest")` 중 이 제품(slug)의 `reviewed=false` 카드 | Agent Auto Sensing 이 잡은 변화·신규 SaaS — 아래 「센싱 카드 처리」 절차로 처리한다 |
+| **센싱 카드** | `sensing("latest")` 중 이 제품(slug)의 `reviewed=false` 카드 | Agent Auto Sensing 이 잡은 변화·신규 SaaS — 아래 「센싱 카드 처리」 절차로 처리한다 |
 | 화면 재관찰 | 트리 due 인 제품 루트를 내 브라우저로 훑어 **달라 보이는 지점만** 기록 | 새 메뉴·새 관리자 토글·기본값 변경·보존 정책 변경 |
 
 **업데이트 요약** — 신호를 한 장으로 종합한다. 변경점 하나 = 한 줄:
@@ -107,7 +107,7 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 3. **같으면** 내용은 건드리지 않고 다시 본 사실을 남긴다:
    `update_targets("confirm", product, ref=<대상>, result="same", evidence=[이번 캡처 Evidence id 또는 보고서 블록], note=<무엇을 봤고 무엇이 같았나 — 완결 문장>, scope="subtree"(트리 노드 아래 전부를 훑었을 때)|"self", how="screen"|"doc"|"experiment"|"db")`
    → 확인한 날이 그 캡처 날로 새로 된다(옛 캡처로 '확인' 하면 나이는 그 옛 날 그대로다 — 이번에 찍은 것만).
-4. **다르면** 기존 길로 고친다(트리 `update_tree` · 판정 `tool_gov fact_set` 등 새 근거 · 사진 재촬영 · 연결 `link`). 고치기 전에 본 것을 남기려면 `confirm(result="changed"|"gone")` —
+4. **다르면** 기존 길로 고친다(트리 `tree("update")` · 판정 `tool_gov fact_set` 등 새 근거 · 사진 재촬영 · 연결 `link`). 고치기 전에 본 것을 남기려면 `confirm(result="changed"|"gone")` —
    그 대상은 고칠 때까지 '다시 봤더니 바뀜 — 아직 안 고침' 묶음에 남는다.
 5. 이미 확인 사실이 있는 것은 confirm 으로 적지 않는다(서버가 거부하고 길을 알려 준다): 문서 카드 = `menutoy web_check` · 메뉴－웹 항목·소스 = `menutoy collect`(succeeded).
 6. **실험 신빙도** — 판정 칸의 근거 나이는 칸 옆 정보다. 🚫 낡았다고 판정 값을 바꾸지 마라(O 를 ? 로 내리기 금지). 근거 실험을 다시 돌려 같으면 confirm(근거 = 새 블록),
@@ -131,9 +131,9 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 > `checklist_set`(판정·근거) · `popup_set`(메뉴 팝업 권고·위험 — `ck` 의 문항은 연결 Link 로 이어진다, 끊기는 `link("remove", item:…, ck:…)`) · `web_add`(문서 근거) · 새 제품이면 `toy_create`(세션 제품명과 toy 이름이 달라도 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 그 toy 를 갱신; 어느 toy 에도 없을 때만 새로). 판정은 근거가 리포트에 있을 때만.
 
 매주 한 번. `aas_search`(매일)·`aas_scope`(매주)가 쌓은 **랭킹 세션**을 aar 가 가져가 처리한다. 판정·증적 규범은
-다른 스킬과 같다(`list_guidance("공통수칙")`). 이 절차는 **어느 카드를 어떤 스킬로 처리하고, 끝나면 무엇을 기록하나**만 정한다.
+다른 스킬과 같다(`guidance("get", "공통수칙")`). 이 절차는 **어느 카드를 어떤 스킬로 처리하고, 끝나면 무엇을 기록하나**만 정한다.
 
-### 0) 입력 — `sensing_ranking("latest")`
+### 0) 입력 — `sensing("latest")`
 - 카드 목록: `kind=new_saas` 1장, `kind=change` ≤5장. `reviewed=false`(Off) 인 카드만 대상. 이미 On 인 카드는 건너뛴다.
 - 카드마다 `body_md`(무엇이 바뀌었나 / 왜 중요한가 / **AAR 에게** 지시) 와 `last_review_session`(그 SaaS 의 기존 세션) 이 있다.
 - 세션이 없으면(`request: null`) 한 줄 보고하고 끝낸다.
@@ -142,20 +142,20 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 1. `last_review_session` 이 있으면 **그 세션에 회차를 추가**한다(새 세션 금지 — 리포트·트리 이력이 한 곳에 쌓이게). 없으면 `<slug>-<YYYY-MM-DD>` 로 새 세션.
 2. env: 그 SaaS 의 env 가 running 이면 그대로, stopped 면 `env("start")`, 없으면 `env("create", …)` 로 만든다 — **사용자 확인 없이 진행한다**(2026-09-07 사용자 지시: 센싱 리뷰의 env 생성·기동은 스킬이 스스로).
    🚨 **env 작업은 한 번에 하나**: create/start 를 부른 뒤 `env("get")` 이 running 이 될 때까지 기다리고 나서 다음 카드의 env 를 만진다(병렬 apply 는 30분 한도에 걸려 전부 죽는다 — 2026-09-07 실사고). create 는 구성요소를 주지 말고 **기본(최소) 구성**으로 만든다.
-3. 카드의 "AAR 에게" 문장이 지목한 시나리오를 `aar_review` Phase 1~N 절차(캡처는 `aar_review/refs/capture-and-workflow.md`)로 **라이브 재실증**한다(대개 1~2개). 4트리 노드가 바뀌면 `update_tree` 로 그 노드만 갱신(전수 재촬영 아님).
-4. 리포트는 **이전 회차 블록을 실은 채** `html_report(…, product=<카드의 slug>)` 재발행. `quality_ok` 가 true 여야 다음으로.
+3. 카드의 "AAR 에게" 문장이 지목한 시나리오를 `aar_review` Phase 1~N 절차(캡처는 `aar_review/refs/capture-and-workflow.md`)로 **라이브 재실증**한다(대개 1~2개). 4트리 노드가 바뀌면 `tree("update")` 로 그 노드만 갱신(전수 재촬영 아님).
+4. 리포트는 **이전 회차 블록을 실은 채** `report("publish", …, product=<카드의 slug>)` 재발행. `quality_ok` 가 true 여야 다음으로.
    (`product` = 세션이 다루는 제품 = 4트리 제품 노드 이름 = 카드 slug. 세션에 한 번 기록되고, 완료 표시는 이 값이 카드 slug 와 **정확히 같을 때만** 인정된다 — 세션 이름이 비슷한 건 근거가 아니다.)
-5. `sensing_review_done(request_id, item=<change_id>, session=<세션>, scenario=<재실증한 시나리오>, summary=<5~10줄>)`.
+5. `sensing("done", request_id, item=<change_id>, session=<세션>, scenario=<재실증한 시나리오>, summary=<5~10줄>)`.
    summary 규격: 무엇을 실측했나 1~3줄 / 판정(O·X·?)과 근거 1~3줄 / 카드가 물은 것에 대한 답 1~2줄 / 남은 것. 표 금지.
 
 ### 2) 신규 SaaS 카드(`kind=new_saas`) — 전수 리뷰
-1. 세션 `<slug>-<YYYY-MM-DD>`, 제품 노드 이름 = slug, **이 세션의 모든 `html_report` 에 `product=<slug>`** (첫 발행이 세션에 기록한다). env 는 새로 만든다(explicit·exp-close, 기본 최소 구성, 다른 env 작업이 끝난 뒤) — 확인 없이.
+1. 세션 `<slug>-<YYYY-MM-DD>`, 제품 노드 이름 = slug, **이 세션의 모든 `report("publish")` 에 `product=<slug>`** (첫 발행이 세션에 기록한다). env 는 새로 만든다(explicit·exp-close, 기본 최소 구성, 다른 env 작업이 끝난 뒤) — 확인 없이.
 2. `skill("get", "aar_review")` 절차 **그대로**(원장 전수 → S0 → S1(4트리 포함) → S2 → S3, aar-reviewer PASS). 로그인이 필요한 제품이면 로그인 벽까지 진행하고 그 이후는 ⛔ + 사유(로그인은 사용자 몫).
-3. 원장 todo=0 이 되면 `sensing_review_done(request_id, item="target:<slug>", session=<세션>, scenario="S3-1", summary=…)`. 이러면 목표 상태가 `active` 로 바뀌고 다음 주부터 `aas_search` 의 변화관리 대상 후보가 된다(스코프 On 은 사람이 켠다).
+3. 원장 todo=0 이 되면 `sensing("done", request_id, item="target:<slug>", session=<세션>, scenario="S3-1", summary=…)`. 이러면 목표 상태가 `active` 로 바뀌고 다음 주부터 `aas_search` 의 변화관리 대상 후보가 된다(스코프 On 은 사람이 켠다).
 4. 로그인 벽 등 외부 사유로 원장을 못 닫으면 완료 표시를 **하지 않는다**. 사유를 마지막 보고에 적는다.
 
 ### 3) 순서·시간
-변화 카드부터(짧다) → 신규 SaaS(길다). 한 카드가 외부 사유로 막히면 건너뛰고 다음 카드. 전부 끝나면 `sensing_ranking("get", request_id)` 로 On 수를 다시 읽어 보고한다.
+변화 카드부터(짧다) → 신규 SaaS(길다). 한 카드가 외부 사유로 막히면 건너뛰고 다음 카드. 전부 끝나면 `sensing("get", request_id)` 로 On 수를 다시 읽어 보고한다.
 
 ### 4) 출력
 ```
@@ -163,9 +163,9 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 ```
 
 ### 센싱 카드 — 절대 규칙
-- 완료(On)는 **quality_ok 통과한 리포트**가 있을 때만(`sensing_review_done` 이 session·scenario 로 검사한다 — 둘 다 필수). 요약만 쓰고 On 켜기 금지. aas 도구엔 완료 액션이 없다.
-- 세션 소속: `sensing_review_done` 은 세션의 `product` 가 카드 slug 와 같거나 그 SaaS 의 `last_review_session` 일 때만 받는다. `product` 를 안 넘긴 새 세션은 완료 표시가 거부된다.
-- 잘못 켠 완료는 `sensing_review_undo(request_id, item, reason)` 로 되돌린다(새 리포트 불필요, 사유는 로그에 남는다). 되돌린 뒤 다시 완료하려면 validated 리포트가 다시 필요하다.
+- 완료(On)는 **quality_ok 통과한 리포트**가 있을 때만(`sensing("done")` 이 session·scenario 로 검사한다 — 둘 다 필수). 요약만 쓰고 On 켜기 금지. aas 도구엔 완료 액션이 없다.
+- 세션 소속: `sensing("done")` 은 세션의 `product` 가 카드 slug 와 같거나 그 SaaS 의 `last_review_session` 일 때만 받는다. `product` 를 안 넘긴 새 세션은 완료 표시가 거부된다.
+- 잘못 켠 완료는 `sensing("undo", request_id, item, reason)` 로 되돌린다(새 리포트 불필요, 사유는 로그에 남는다). 되돌린 뒤 다시 완료하려면 validated 리포트가 다시 필요하다.
 - 카드가 지목하지 않은 시나리오를 늘리지 마라(전수는 신규 SaaS 에서만).
 - 새 시나리오가 필요해 보여도 `scenario("create", …)` 는 승인 필요 — 이 절차 안에서 만들지 않는다.
 - aas 쪽(스코프·URL·기준)은 손대지 않는다. aar 는 읽고(랭킹) 완료만 표시한다.
@@ -182,7 +182,7 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 | direction · kind | 뜻 | 확인 | 고침 |
 |---|---|---|---|
 | tree_behind · `item_gone` | 트리 노드가 이어진 칸이 화면에서 사라짐(successors = 이름·설명이 같은 새 칸) | 그 화면을 열어 칸이 없어졌는지·옮겨졌는지 | 옮겨짐 → 연결을 새 칸으로(`link` replace) + 트리 노드를 새 위치로 · 없어짐 → 트리에서 내림 |
-| tree_behind · `page_mismatch` | 노드의 칸이 트리 화면(Cowork 등)과 다른 페이지에 있음 | 화면에서 그 설정이 실제로 어느 페이지에 있나 · 옛 자리에 포인터 행('…로 이동되었습니다 [기능에서 관리]')이 남았나 | 노드를 새 페이지 가지로 **옮긴다** — `update_tree(새 부모, patch=[{"name", "move_from": [옛 경로]}])`(같은 id 라 연결·보고서·사진이 따라온다. 지우고 새로 만들지 마라). 옛 자리에 포인터 행이 있으면 그 자리에 포인터 노드를 새로 두고 포인터 칸과 잇는다 |
+| tree_behind · `page_mismatch` | 노드의 칸이 트리 화면(Cowork 등)과 다른 페이지에 있음 | 화면에서 그 설정이 실제로 어느 페이지에 있나 · 옛 자리에 포인터 행('…로 이동되었습니다 [기능에서 관리]')이 남았나 | 노드를 새 페이지 가지로 **옮긴다** — `tree("update", 새 부모, patch=[{"name", "move_from": [옛 경로]}])`(같은 id 라 연결·보고서·사진이 따라온다. 지우고 새로 만들지 마라). 옛 자리에 포인터 행이 있으면 그 자리에 포인터 노드를 새로 두고 포인터 칸과 잇는다 |
 | tree_behind · `new_on_screen` | 트리 마지막 변경 뒤 화면에 새로 생긴 칸(안 이어짐) | 메뉴로서 트리에 둘 만한가(탭·필터·목록 행은 대개 아님) | 둘 만하면 노드 추가 + 연결, 아니면 둔다 |
 | toy_behind · `nav_uncollected` | 사이트 사이드바에 있는데 수집 목록 밖인 페이지 | 그 페이지가 실제로 열리나·탭이 있나(탭마다 `?tab=` 주소를 주소창으로 확인) | `source_set` urls 에 넣고 수집 |
 | toy_behind · `tree_page_missing` | 트리의 화면 자리인데 메뉴 재현에 그 페이지가 없음 | 사이트에 그 화면이 아직 있나 | 있으면 URL 확인 → 수집 목록 + 수집 · 없어졌으면 트리에서 내림 |
@@ -206,14 +206,14 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 
 | 변경점 종류 | 작업 |
 |---|---|
-| 메뉴·설정 노드 추가/삭제/문구 변경 | 트리 `update_tree`(그 앵커만) · 연결된 메뉴 재현 항목 갱신 · 연결 추가/끊기 |
+| 메뉴·설정 노드 추가/삭제/문구 변경 | 트리 `tree("update")`(그 앵커만) · 연결된 메뉴 재현 항목 갱신 · 연결 추가/끊기 |
 | `drift` 후보(메뉴 재현 ↔ 트리 어긋남) | 위 「메뉴 재현 ↔ 트리 루프」 표의 고침 — 뒤처진 쪽만(트리 또는 수집 목록·파서) |
 | 새 관리자 토글·기본값 변경 | 위 + 도구 통제: 그 토글이 통제하는 실체의 사실 칸 재실증(S1-tool-control) · 체크리스트 판정 재확인 |
 | 새 등록 입구(스킬·MCP·플러그인·에이전트를 올리는 곳) | 도구 통제 실체 추가(등록 예제·steps·등록 경로 연결) + 그 실체의 사실 칸 실증 |
 | 공식문서 changed | 문서 카드 `web_add` 설명 고침 · 그 카드에 이어진 문항 판정·도구 통제 사실(문서가 근거인 칸) 재확인 |
 | 보존·로그 정책 변경 | data-retention 트리 · 해당 시나리오 보고서 |
-| **새 세션(이용 형태)·표면 추가 / 범위 변경** | 가정 scope · 세션 트리 잎(지워진 노드면 되살림 — 새로 만들지 않는다) · 모니터링 표 그 행 실증 · 네트워크 통제 그 열 판정 · 전체 구성도 상자·선 + 그 세션 그림 · 도구 통제 실체(그 표면의 등록 입구·실행 위치 태그)·사실 칸 · 브라우저 실체(그 표면의 브라우저 도구) · 메뉴 트리(그 표면의 화면) · 관리자 추가설정(그 표면이 읽는 설정) · 데이터 보존(그 표면의 저장 지점) · 체크리스트 연결 · 그 표면 질문 공백 · 그 표면 시나리오 원장(coverage_ledger)의 보고서 |
-| 위 대상 중 보고서의 블록이 가리키는 것이 바뀜 | 그 **시나리오만** 재실증해 보고서 새 버전(`html_report`) — kind=periodic 보고서는 반드시, 나머지는 바뀐 게 있을 때만 |
+| **새 세션(이용 형태)·표면 추가 / 범위 변경** | 가정 scope · 세션 트리 잎(지워진 노드면 되살림 — 새로 만들지 않는다) · 모니터링 표 그 행 실증 · 네트워크 통제 그 열 판정 · 전체 구성도 상자·선 + 그 세션 그림 · 도구 통제 실체(그 표면의 등록 입구·실행 위치 태그)·사실 칸 · 브라우저 실체(그 표면의 브라우저 도구) · 메뉴 트리(그 표면의 화면) · 관리자 추가설정(그 표면이 읽는 설정) · 데이터 보존(그 표면의 저장 지점) · 체크리스트 연결 · 그 표면 질문 공백 · 그 표면 시나리오 원장(scenario("ledger"))의 보고서 |
+| 위 대상 중 보고서의 블록이 가리키는 것이 바뀜 | 그 **시나리오만** 재실증해 보고서 새 버전(`report("publish")`) — kind=periodic 보고서는 반드시, 나머지는 바뀐 게 있을 때만 |
 
 4. **작업 목록** — `[작업 id] 대상(종류·id/주소) · 할 일 · 이 작업을 부른 변경점 id · 선행 작업`. 같은 대상은 한 작업으로 합친다. 선행 관계(예: 트리 노드를 먼저 만들어야 실체를 이을 수 있음)를 적는다.
 5. 🚫 목록에 없는 대상은 ③ 에서 건드리지 않는다. 변화 없는 시나리오·항목은 재캡처하지 않는다.
@@ -222,26 +222,26 @@ aar_update 뒤에 지시가 붙으면 요약은 그걸로 하고, 그 지시로 
 ## ③ 업데이트 루프
 
 작업 목록을 선행 순서대로 하나씩:
-- **트리** — 바뀐 앵커에만 `update_tree(tree_id, node_path=[앵커], patch=[그 아래 현재])`. 삭제 판정은 앵커 서브트리 안에서만. 사진이 필요하면 `annotate_shot`·`shot_set`.
+- **트리** — 바뀐 앵커에만 `tree("update", tree_id, node_path=[앵커], patch=[그 아래 현재])`. 삭제 판정은 앵커 서브트리 안에서만. 사진이 필요하면 `shot("annotate")`·`shot`.
 - **메뉴 재현** — 수집은 `menutoy("collect", …)` → `menutoy("collect_status", key=<job>, at="80")`(서버가 80초 대기) **최대 25번(≈30분)** 까지만(옛 `aar_menutoy` 에서 옮김). VM 의 브라우저에 그 SaaS 가 **로그인돼 있어야** 한다(안 돼 있으면 ⛔ 사유: 로그인은 사용자 몫). 수집 중엔 VM 화면을 건드리지 마라(키 입력이 섞인다).
   파싱 오류면 `menutoy("source_get", product, source)` 로 파서·raw 를 보고 **재수집 없이** 고친다 — 행 `k`(키)는 **화면 위치가 아니라 의미**로 안정되게(키가 바뀌면 diff 가 전부 +/− 로 보이고 체크리스트 연결이 끊긴다) → `source_set(parser=…)` → `reparse`. 항목 판정·팝업·문서 근거는 `menutoy`(`checklist_set`·`popup_set`·`web_add`). 새 제품 toy 는 `menutoy("toys")` 의 sources[].hosts 로 같은 SaaS 를 찾아 갱신(어느 toy 에도 없을 때만 새로).
 - **도구 통제** — 절차 정본 = S1-tool-control 지시문. 실체 `tool_gov("entity_add"|"entity_edit")`, 사실 `tool_gov("fact_set", …, evidence=[캡처 블록], reason=완결 문장, actor)`. 판정 O/X/-/? 만(부분 판정 금지 — 애매하면 경로·범위별로 나눈다), 입구 없으면 '-', 관리자가 통제를 바꾸면 멤버 앱 새로고침·재시작 뒤 확인, 원복 5단계.
-- 🎚 **판정 확실도 = 보고서 검증 하네스가 매긴다(2026-10-24 사용자 결정 — 명제 없앰, 보고서 자체가 기술 블로그)** — 판정은 O/X/-/? 넷 그대로. 판정 칸(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`)엔 판정·근거·이유·확인 계정을 적고, 확실도(상·중·하 + 까닭)는 보고서를 발행한 뒤 **검증 하네스**(`report_inspect` — 독립 검사자가 검사표 7항목으로 최대 4회차 · 닫히는 회차가 그 보고서가 받친 칸 확실도를 쓴다)가 정한다 — 절차 `skill("get", "_shared/refs/report-harness.md")` 를 그대로 따른다. ? 는 판정을 받치는 캡처가 전혀 없을 때만. 화면: 상 선명 실선 · 중 흐린 점선 · 하 회색 · 미평가 얇은 회색 테.
+- 🎚 **판정 확실도 = 보고서 검증 하네스가 매긴다(2026-10-24 사용자 결정 — 명제 없앰, 보고서 자체가 기술 블로그)** — 판정은 O/X/-/? 넷 그대로. 판정 칸(`tool_gov fact_set` · `monitor fact_set` · `net_control effect_set`)엔 판정·근거·이유·확인 계정을 적고, 확실도(상·중·하 + 까닭)는 보고서를 발행한 뒤 **검증 하네스**(`report("inspect_start")` — 독립 검사자가 검사표 7항목으로 최대 4회차 · 닫히는 회차가 그 보고서가 받친 칸 확실도를 쓴다)가 정한다 — 절차 `skill("get", "_shared/refs/report-harness.md")` 를 그대로 따른다. ? 는 판정을 받치는 캡처가 전혀 없을 때만. 화면: 상 선명 실선 · 중 흐린 점선 · 하 회색 · 미평가 얇은 회색 테.
 - **연결** — 같은 대상임을 화면으로 확인한 것만 `link("add", a, b, note)`, 사라진 대상과의 연결은 `link("remove", a, b, reason)`.
-- **보고서** — `scenario_start` → 라이브 캡처 → `html_report`(블록 `items=[노드·항목 id]`). 보고서는 바뀐 것의 요약만(메뉴 전체 나열 금지). 🔁 **발행 뒤 검증 하네스(2026-10-24 — 명제 대신)**: 발행할 때마다 `report_inspect("start", session, scenario)` → FAIL 이면 `failures[].fix` 를 모두 반영해 다시 `html_report` → 다시 start(최대 4회차 · 4회차도 FAIL 이면 남은 실패가 보고서에 실린 채 닫힘 — 완료 보고에 그대로 적는다) · 닫혀야 원장 ✅(`_shared/refs/report-harness.md`). 다른 보고서를 끌어 쓰면 `[[rep:<세션>/<시나리오>#<blk_…|scene-N>|이름]]`.
+- **보고서** — `scenario("start")` → 라이브 캡처 → `report("publish")`(블록 `items=[노드·항목 id]`). 보고서는 바뀐 것의 요약만(메뉴 전체 나열 금지). 🔁 **발행 뒤 검증 하네스(2026-10-24 — 명제 대신)**: 발행할 때마다 `report("inspect_start", session, scenario)` → FAIL 이면 `failures[].fix` 를 모두 반영해 다시 `report("publish")` → 다시 start(최대 4회차 · 4회차도 FAIL 이면 남은 실패가 보고서에 실린 채 닫힘 — 완료 보고에 그대로 적는다) · 닫혀야 원장 ✅(`_shared/refs/report-harness.md`). 다른 보고서를 끌어 쓰면 `[[rep:<세션>/<시나리오>#<blk_…|scene-N>|이름]]`.
 - **번짐** — 고치다가 새 변경이 드러나면(예: 트리 노드를 고쳤더니 연결된 실체의 등록 경로가 바뀜) 변경점으로 요약에 추가하고 ② 규칙으로 작업을 만들어 목록 끝에 붙인다. 같은 대상이 두 번 들어오면 합친다(무한 루프 방지 — 한 대상은 한 실행에 한 번).
 - 작업마다 결과를 `완료 / 막힘(사유 — 예: 로그인 필요) / 변화 없음(확인만)` 으로 적는다.
 
 ## 끝내기 전 — 완성 기준 검증(2026-10-12)
 - ② 0 의 점검표 **모든 줄**이 `반영(근거 — 커밋·보고서 rev·판정 칸) / 해당없음 / 막힘` 으로 닫혔는지 먼저 본다. 열린 줄이 있으면 완료가 아니다(완성 기준 RC-23).
 - "완료"라고 말하기 전에 독립 검증 서브에이전트 `aar-reviewer` 를 부른다 — 프롬프트에 제품·이번 세션들·작업 목록·처리한 센싱 카드를 넘긴다.
-  aar-reviewer 는 `list_guidance('완성기준')`(사용자 피드백으로 쌓인 리뷰 완성 기준 RC 전부)을 하나씩 본다. FAIL 이 오면 그 작업으로 돌아가 고치고 다시 부른다(PASS 까지).
+  aar-reviewer 는 `guidance("get", '완성기준')`(사용자 피드백으로 쌓인 리뷰 완성 기준 RC 전부)을 하나씩 본다. FAIL 이 오면 그 작업으로 돌아가 고치고 다시 부른다(PASS 까지).
 - 이번 실행 중 사용자가 결과물이 어때야 하는지 새로 지적했으면, 끝내기 전에 그 지적을 완성 기준에 더한다(아래 하네스 끝 단계의 '완성 기준 쌓기').
 
 ## 기록
 - 호출 이력 자기점검(AgentReview 저장소가 있는 PC 만): 끝나면 `AgentReviewPlugin/vmscreen/vms-audit --self`(서브에이전트마다 `-a <agentId>`) — 위반·토큰 요약을 결과 보고에 그대로 붙인다(위반은 개선 접수함으로 — 다음 `recall` 근거).
 - 작업 중이나 끝에 실수·반복 실수·개선 방향이 보이면 보고서 끝에 쓰는 것과 별개로 `harness("improve", kind=token|accuracy|procedure|tool|instruction, text=<한두 문장>, where=<고칠 곳>)` 로 보낸다(MCP 가 없으면 AgentReview 저장소에서 `python -m aar_core.harness improve --kind … --text "…"`) — 같은 내용은 횟수가 쌓여 반복 실수가 드러난다. 끝내기 전 게이트는 aar-reviewer 가 `harness("gate")` 로 회차를 남긴다.
-- `memory_note(kind='note')` — 업데이트 요약(변경점 목록) · 작업 목록 · 작업별 결과 · 막힌 것. 다음 실행이 이어받는다.
+- `memory("note", kind='note')` — 업데이트 요약(변경점 목록) · 작업 목록 · 작업별 결과 · 막힌 것. 다음 실행이 이어받는다.
 - 끝에 `update_targets("list", product)` 를 다시 불러 due 와 `stale` 묶음(낡음 이상·죽은 링크·아직 안 고침)이 남아 있으면 묶음마다 수와 사유를 보고한다(마지막 갱신 시각은 자료에서 읽힌다).
 - 갱신 완료로 세는 것 = succeeded 로 끝난 수집 · web_check same|changed · 트리 커밋 · 다시 본 사실(confirm same) · 발행된 보고서 버전 · 완료 표시한 센싱 카드(On). 시작만 한 수집·partial·failed 는 완료가 아니다.
 - 피드백 창고는 이 스킬이 처리하지 않는다 — `feedback("list", status="open")` 로 센 수만 한 줄: "열린 피드백 n개 — /aar_feedback 로 처리".

@@ -3,7 +3,7 @@
 > **목적**: 검토 대상 SaaS 의 **서비스 구성도 / 형태별 관계 그래프** 를 **Graph 데이터**(영역·노드·흐름·간선)로 올리고, 서버가 그린 그림을 보고서·docx 에 쓴다.
 > **산출물**: Graph 기록 1장 이상(`graph("put")` — rev 로 이력) · 보고서의 graph 블록 · docx 의 PNG(같은 데이터에서 서버가 그린 것).
 > **사용처**: SaaS 보안검토 본 보고서의 **2. 서비스 구성**(kind `service_arch`) · **[별첨7] □ 서비스 개요** · S1-session-tree 의 형태별 관계 그래프(kind `session_flow`).
-> 🚨 **HTML/SVG 를 손으로 그려 캡처하거나 PNG 를 `upload_report_file` 로 올리지 않는다**(2026-09-28 사용자 결정 — "그래프 그리는 게 지금 다 사진으로 되어 있는데,
+> 🚨 **HTML/SVG 를 손으로 그려 캡처하거나 PNG 를 `report("upload")` 로 올리지 않는다**(2026-09-28 사용자 결정 — "그래프 그리는 게 지금 다 사진으로 되어 있는데,
 > 그러지 말고 진짜 그래프 객체로 저장해줘"). 옛 사진 그래프는 모두 데이터로 옮겨졌다.
 
 ---
@@ -42,9 +42,9 @@
    - **별첨7 □ 서비스 개요용**(`slug:"service-flow"`): 설치/통신 흐름 관점(포트·도메인·예외 도메인 — 노드 sub 에)
 
 ### Phase B — 보고서에 넣기
-4. **HTML 보고서**(html_report): 블록 `{"type":"graph","graph":"<그래프 code>","caption":…}` — 발행이 그 시점 rev 를 고정(ReportRef)하고 그림(svg)을 인라인한다.
+4. **HTML 보고서**(report("publish")): 블록 `{"type":"graph","graph":"<그래프 code>","caption":…}` — 발행이 그 시점 rev 를 고정(ReportRef)하고 그림(svg)을 인라인한다.
 5. **docx**(S3): `graph("render", product, graph, fmt="png")` 가 준 `url` 의 PNG 를 본문 2장 / 별첨7 자리에 넣는다(같은 데이터에서 그린 그림 — 따로 그리지 않는다).
-   docx 를 `upload_report_file` 로 올릴 때 그림 파일을 따로 올리지 않는다.
+   docx 를 `report("upload")` 로 올릴 때 그림 파일을 따로 올리지 않는다.
 
 ---
 
@@ -70,7 +70,7 @@
 | `graph put` 이 BAD_INPUT(problems) | problems 목록대로 — 실측 간선 근거·문서 URL·라벨·홉을 채우거나, 확인 못 했으면 needs_review + review_note |
 | 같은 그래프를 다시 올리면 rev 가 안 오름 | 내용이 같으면 changed=false(정상) |
 | CONFLICT | 그 사이 누가 고쳤다 — `graph("get")` 로 다시 읽고 고쳐 `expected_rev` 와 함께 put |
-| 보고서에 그림이 안 보임 | 블록 `graph` 에 그래프 code(또는 grf_ id)를 넣었는지 — html_report 가 400 으로 까닭을 준다 |
+| 보고서에 그림이 안 보임 | 블록 `graph` 에 그래프 code(또는 grf_ id)를 넣었는지 — report("publish") 가 400 으로 까닭을 준다 |
 
 ---
 
@@ -82,6 +82,6 @@
   zones: 사용자 단말(endpoint) · 사내망(org) · Anthropic 클라우드(vendor)
   nodes: Cowork VM(Hyper-V) · 사내 Proxy · IdP · SIEM · Claude Server · 모델
   flows: 로그인 · 추론 · Audit 송신   edges: ①②③ + 라벨 + 근거 블록
-[보고서] html_report blocks=[…, {"type":"graph","graph":"claude-app/arch/service","caption":…}]
+[보고서] report("publish") blocks=[…, {"type":"graph","graph":"claude-app/arch/service","caption":…}]
 [docx] graph("render", product="claude-app", graph="claude-app/arch/service", fmt="png") → url 의 PNG 를 2장에
 ```
