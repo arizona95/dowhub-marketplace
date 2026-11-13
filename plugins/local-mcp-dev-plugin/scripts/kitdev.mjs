@@ -11,13 +11,16 @@
 import { spawnSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const WIN = process.platform === "win32";
 const WS = process.cwd();
 const KIT = join(WS, ".kit");
 const CONF = join(KIT, "workspace.json");
 const LAST = join(KIT, "last-ci.json");
+// 사내 마켓플레이스에서 받은 플러그인에는 그 회사 키트 주소가 들어 있다(kit.json)
+const PLUGIN_KIT = join(dirname(fileURLToPath(import.meta.url)), "..", "kit.json");
 
 // 사내 CA 는 회사 PC 의 OS 인증서 저장소에 있다 — Node 가 그것을 쓰게 한 번 다시 띄운다
 if (!process.env.KITDEV_REEXEC && process.allowedNodeEnvironmentFlags.has("--use-system-ca")) {
@@ -99,7 +102,7 @@ function ensureIgnore() {
 function writeBom(file, text) { writeFileSync(file, "﻿" + text, "utf8"); }
 
 async function setup(a) {
-  const pub = (a.kit || readJson(CONF)?.public || "").replace(/\/+$/, "");
+  const pub = (a.kit || readJson(CONF)?.public || readJson(PLUGIN_KIT)?.public || "").replace(/\/+$/, "");
   if (!/^https:\/\/[^/]+/.test(pub)) die("사내 MCP 키트 주소가 필요합니다 — 예: mcp-setup --kit https://mcp.사내도메인");
   if (run("git", ["--version"]).status !== 0) die("git 이 없습니다 — Git for Windows 를 설치하세요");
   mkdirSync(KIT, {recursive: true});
