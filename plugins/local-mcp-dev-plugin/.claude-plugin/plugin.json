@@ -1,6 +1,6 @@
 {
   "name": "local-mcp-dev-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "사내 MCP 개발 키트 — 워크스페이스에 goose 시험 환경을 만들고(mcp-setup), 고칠 때마다 사내 CI 자동 검사를 통과한 코드만 goose 샌드박스에서 시험하며(mcp-run), 사내 Git 에 배포 요청을 낸다(mcp-deploy). 관리자가 승인하면 회사 Claude 에 자동 배포된다.",
   "author": {"name": "dowoo"}
 }

@@ -4,6 +4,8 @@
 //   ci     [-m <커밋 메시지>]                                  commit·push → 사내 CI 결과를 기다려 통과/실패(실패 줄만) 보고
 //   test   -t <질문> [--with-extension <명령>]                 CI 를 통과한 지금 코드만 goose(srt 샌드박스)에서 시험
 //   deploy                                                   CI 를 통과한 커밋으로 배포 요청
+//   mode   [on|off]                                          실행 모드 보기·바꾸기 — on: CI 켬(통과 커밋만 · 바깥 네트워크 열림)
+//                                                            off: CI 끔(검사 없이 바로 · 관리자 화이트리스트 네트워크만)
 //   status [<요청 번호>]                                      배포 요청 상태
 // 키를 PC 에 새로 저장하지 않는다 — 사내 Git 자격 증명(Git Credential Manager 가 OS 저장소에 둔 것)을 그때그때 꺼내 쓴다.
 import { spawnSync, spawn } from "node:child_process";
@@ -239,10 +241,13 @@ function ensureVenv() {
 async function test(a) {
   const c = conf();
   if (!a.t) die("시험 질문이 필요합니다 — test -t \"질문\"");
-  if (git("status", "--porcelain").out) die("CI 를 거치지 않은 변경이 있습니다 — 먼저 ci 로 올려 검사를 통과하세요(통과한 코드만 시험합니다)");
-  const sha = mustGit("rev-parse", "HEAD");
-  const last = readJson(LAST);
-  if (!last || last.sha !== sha || !last.ok) die(`지금 코드(${sha.slice(0, 12)})는 CI 를 통과하지 않았습니다 — 먼저 ci`);
+  const m = await new Kit(c.public).must("GET", "/api/devkit/mode");
+  if (m.mode === "ci") {
+    if (git("status", "--porcelain").out) die("CI 켬 모드입니다 — CI 를 거치지 않은 변경이 있습니다. 먼저 ci 로 올려 통과시키세요(바로 시험하려면 mode off: 관리자 화이트리스트 네트워크만)");
+    const sha = mustGit("rev-parse", "HEAD");
+    const last = readJson(LAST);
+    if (!last || last.sha !== sha || !last.ok) die(`CI 켬 모드입니다 — 지금 코드(${sha.slice(0, 12)})는 CI 를 통과하지 않았습니다. 먼저 ci (바로 시험하려면 mode off)`);
+  } else say(`CI 끔 모드 — 검사 없이 바로 시험합니다. 바깥 네트워크는 관리자 화이트리스트(${(m.whitelist || []).join(", ") || "사내 서버만"})로만 나갑니다`);
   ensureVenv();
   const entry = a["with-extension"] || readJson(join(WS, "kit-mcp.json"))?.entry || die("kit-mcp.json 에 entry 가 없습니다");
   const cmd = join(KIT, WIN ? "mcp-test.cmd" : "mcp-test");
@@ -266,6 +271,17 @@ async function deploy() {
   say(`화면: ${c.public}/mcp  ·  상태 보기: status ${r.id}`);
 }
 
+async function mode(a) {
+  const c = conf();
+  const kit = new Kit(c.public);
+  const want = a._[1];
+  if (want && !["on", "off"].includes(want)) die("mode on 또는 mode off");
+  const m = want ? {...await kit.must("GET", "/api/devkit/mode"), ...await kit.must("POST", "/api/devkit/mode", {mode: want === "on" ? "ci" : "restricted", via: "plugin"})}
+    : await kit.must("GET", "/api/devkit/mode");
+  say(`실행 모드: ${m.label}`);
+  say(m.mode === "ci" ? `  바깥 네트워크: ${(m.open || []).join(", ")} · 시험 전 CI 통과 필요` : `  바깥 네트워크: ${(m.whitelist || []).join(", ") || "사내 서버만"} · CI 없이 바로 시험`);
+}
+
 const STATUS = {queued: "검사 대기", running: "검사 중", done: "검사 끝"};
 const DECISION = {pending: "관리자 승인 대기", approved: "승인 — Claude 에 배포됨", rejected: "반려"};
 
@@ -280,5 +296,5 @@ async function status(a) {
 }
 
 const a = args(process.argv.slice(2));
-const CMDS = {setup, ci, test, deploy, status};
+const CMDS = {setup, ci, test, deploy, status, mode};
 (CMDS[a._[0]] || (() => die(`사용: kitdev ${Object.keys(CMDS).join("|")}`, 2)))(a);
