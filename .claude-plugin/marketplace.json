@@ -204,7 +204,7 @@
         "icon": "🛠️",
         "type": "plugin",
         "status": "published",
-        "version": "0.3.0",
+        "version": "0.4.5",
         "url": "https://github.com/arizona95/dowhub-marketplace.git",
         "install": "/plugin marketplace add https://github.com/arizona95/dowhub-marketplace.git",
         "skills": [
