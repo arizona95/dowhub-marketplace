@@ -19,7 +19,7 @@ description: 사내 MCP 개발 환경 구성 — 지금 워크스페이스에 go
    ```
    node "<스크립트>" setup [--kit <주소>] --name <이름> --desc "<한 줄 설명>"
    ```
-   - 처음이면 브라우저에 사내 Git 로그인 창이 뜬다. 사용자에게 로그인하라고 알린다.
+   - 처음이면 사내 Git 로그인 창(Git Credential Manager — 브라우저 또는 계정·비밀번호 창)이 뜬다. 사용자에게 사내 Git 계정으로 로그인하라고 알린다. 한 번 로그인하면 그 뒤 setup·ci·test·deploy 는 다시 묻지 않는다(저장된 것이 거절되면 스크립트가 지우고 한 번 다시 묻는다 — 손으로 git credential reject 하라고 하지 않는다).
    - goose·srt·mcp-test 가 워크스페이스 `.kit/` 에 설치된다.
    - 저장소에는 시작 코드와 `.gitea/workflows/kit-ci.yml` 이 들어간다.
 4. 출력 마지막의 "처음 한 번만" 줄(윈도우 샌드박스 준비)이 있으면 사용자에게 그대로 전한다.
