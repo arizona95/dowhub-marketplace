@@ -18,7 +18,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, rmSync, openSync, closeSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir, homedir, release } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const WIN = process.platform === "win32";
@@ -290,6 +290,8 @@ async function login(a) {
 
 async function setup(a) {
   if (!WIN && process.platform !== "linux") die("사내 MCP 개발 키트는 윈도우 11 과 리눅스 개발자 PC 를 지원합니다(MXC 샌드박스)");
+  // 윈도우 10(빌드 22000 아래)은 MXC 가 폴더 권한(DACL)을 바꾸는 방식으로만 돈다 — 관리자 폴더(Program Files 의 Node·Python)를 못 바꿔 시험이 뜨지 않는다(2026-11-16 실측)
+  if (WIN && Number(release().split(".")[2]) < 22000) die(`이 PC 는 윈도우 10(빌드 ${release()})입니다 — 사내 MCP 개발 키트의 샌드박스는 윈도우 11 과 리눅스에서만 돕니다. 윈도우 11 PC 에서 하세요`);
   const pub = kitAddr(a);
   if (run("git", ["--version"]).status !== 0) die("git 이 없습니다 — Git for Windows 를 설치하세요");
   mkdirSync(KIT, {recursive: true});
