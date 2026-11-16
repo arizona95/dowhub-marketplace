@@ -214,6 +214,7 @@ async function ensureKit(kit, force) {
   const prev = existsSync(script) ? readFileSync(script, "utf8").replace(/^\uFEFF/, "") : null;
   if (!existsSync(join(KIT, "kit.json")) || force || prev !== body) {
     if (prev !== null && prev !== body) say("사내 키트가 바뀌어 goose 시험 환경을 새로 받습니다");
+    say("goose·샌드박스를 받습니다(약 100 MB) — 네트워크 경로에 따라 몇 초에서 수십 분까지 걸립니다. 1분마다 '몇 % 완료되었습니다' 줄이 나오면 받는 중이니 끊지 말고 기다리세요");
     const code = (await kit.must("POST", "/api/dlcode")).code;
     const env = {...process.env, KIT_TOKEN: code, KIT_DIR: KIT};
     let r;
