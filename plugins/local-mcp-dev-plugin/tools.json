@@ -1,0 +1,9 @@
+{
+  "_": "개발자 PC 에 없으면 받아 쓰는 도구 — 사내 Git 패키지 저장소(Gitea Generic, 키트 관리자 계정)에 '이름/판/파일' 로 올라가 있다. 받는 곳: <키트 주소>/download/tools/<이름>/<판>/<파일> (로그인 전에도). 키 = '<이름>/<OS>', 받은 파일은 sha256 을 맞춰 본다 · unpack:false = 풀지 않고 그 파일 그대로",
+  "tools": {
+    "node/win-x64": {"version": "22.12.0", "file": "node-v22.12.0-win-x64.zip", "sha256": "2b8f2256382f97ad51e29ff71f702961af466c4616393f767455501e6aece9b8", "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-win-x64.zip"},
+    "node/linux-x64": {"version": "22.12.0", "file": "node-v22.12.0-linux-x64.tar.xz", "sha256": "22982235e1b71fa8850f82edd09cdae7e3f32df1764a9ec298c72d25ef2c164f", "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-x64.tar.xz"},
+    "pip/any": {"version": "26.2.2", "file": "pip-26.2.2.pyz", "sha256": "e5ef64ef63ff89a746014ad81658b76c1940385fdcdbc4fcbfa6e3ef1887352d", "url": "https://bootstrap.pypa.io/pip/zipapp/pip-26.2.2.pyz", "unpack": false},
+    "gcm/linux-x64": {"version": "3.0.2", "file": "gcm-linux-x64-3.0.2.tar.gz", "sha256": "b8e59e22a830006ca4d93e34513effbb2d9fc0c45d9ccf40395eaab7c4c1b97e", "url": "https://github.com/git-ecosystem/git-credential-manager/releases/download/v3.0.2/gcm-linux-x64-3.0.2.tar.gz"}
+  }
+}
