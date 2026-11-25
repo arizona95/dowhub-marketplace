@@ -19,6 +19,8 @@ allowed-tools:
 > 🧭 **env 는 제품으로 찾는다** — `env("for_product", name=<제품>)` 로 그 제품에 연결된 env 와 (계정, 플랜) 세트를 받는다. 하나면 그것, 여럿이면 요청 문맥으로 고르고 모호하면 묻는다.
 > `exists:false` 는 쓰지 않는다. stopped 면 `env("start", name)`. 연결된 env 가 없으면 추정하지 말고 `env("list")` 를 보여주고 묻는다 — 새로 만들지 않는다. 로그인은 사람이 한다(비밀번호를 묻거나 적지 않는다).
 
+> 🧭 **v2 제품(`knowledge("status")` 의 v2:true)은 `skill("get", "_shared/refs/v2-state-space.md")` 를 먼저 읽고 그대로 따른다** — 걷기 끝 드리밍이 지식·상태 공간을 고치고(`state` 도구), `path("project")`·트리·판정 손 계산은 하지 않는다. 아래 v1 흐름은 v1 제품에만.
+
 # 피드백 창고 처리 (aar_feedback)
 
 사용자 원문(2026-10-23): "그냥 /aar_review /aar_update /aar_feedback 이렇게 3개 둘까"
